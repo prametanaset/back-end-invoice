@@ -10,14 +10,18 @@ import (
 )
 
 type InvoiceHandler struct {
-	invUC      usecase.InvoiceUsecase
-	authSecret string
+	invUC       usecase.InvoiceUsecase
+	authSecret  string
+	jwtIssuer   string
+	jwtAudience string
 }
 
-func NewInvoiceHandler(invUC usecase.InvoiceUsecase, authSecret string) *InvoiceHandler {
+func NewInvoiceHandler(invUC usecase.InvoiceUsecase, authSecret, issuer, audience string) *InvoiceHandler {
 	return &InvoiceHandler{
-		invUC:      invUC,
-		authSecret: authSecret,
+		invUC:       invUC,
+		authSecret:  authSecret,
+		jwtIssuer:   issuer,
+		jwtAudience: audience,
 	}
 }
 
@@ -58,7 +62,7 @@ func (h *InvoiceHandler) List(c *fiber.Ctx) error {
 }
 
 func (h *InvoiceHandler) RegisterRoutes(app *fiber.App) {
-	api := app.Group("/invoices", middleware.JWTMiddleware(h.authSecret))
+	api := app.Group("/invoices", middleware.JWTMiddleware(h.authSecret, h.jwtIssuer, h.jwtAudience), middleware.RequireRoles("user", "admin"))
 	api.Post("/", h.Create)
 	api.Get("/", h.List)
 	api.Get("/:id", h.GetByID)

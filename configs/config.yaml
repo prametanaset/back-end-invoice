@@ -12,5 +12,7 @@ database:
 auth:
   # JWT secret should be provided via the JWT_SECRET environment variable
   jwt_secret: ""
+  jwt_issuer: "invoice_service"
+  jwt_audience: "invoice_api"
   jwt_expiry_access_minutes: 15
   jwt_expiry_refresh_hours: 24

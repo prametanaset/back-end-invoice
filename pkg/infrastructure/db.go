@@ -32,6 +32,8 @@ type AppConfig struct {
 	Database DBConfig `yaml:"database"`
 	Auth     struct {
 		JWTSecret             string `yaml:"jwt_secret"`
+		JWTIssuer             string `yaml:"jwt_issuer"`
+		JWTAudience           string `yaml:"jwt_audience"`
 		JWTExpiryAccessMin    int    `yaml:"jwt_expiry_access_minutes"`
 		JWTExpiryRefreshHours int    `yaml:"jwt_expiry_refresh_hours"`
 	} `yaml:"auth"`
@@ -76,6 +78,12 @@ func LoadConfig(path string) (*AppConfig, error) {
 	// สำหรับ JWT secret
 	if env := os.Getenv("JWT_SECRET"); env != "" {
 		cfg.Auth.JWTSecret = env
+	}
+	if env := os.Getenv("JWT_ISSUER"); env != "" {
+		cfg.Auth.JWTIssuer = env
+	}
+	if env := os.Getenv("JWT_AUDIENCE"); env != "" {
+		cfg.Auth.JWTAudience = env
 	}
 	if env := os.Getenv("JWT_EXPIRY_ACCESS"); env != "" {
 		fmt.Sscanf(env, "%d", &cfg.Auth.JWTExpiryAccessMin)
