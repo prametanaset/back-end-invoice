@@ -52,6 +52,8 @@ func main() {
 
 	// Logger middleware
 	app.Use(middleware.Logger(db))
+	// Global JWT middleware except for auth routes
+	app.Use(middleware.JWTMiddlewareExcept(cfg.Auth.JWTSecret, "/auth"))
 
 	// ตระเตรียม Auth module
 	authRepository := authRepo.NewAuthRepository(db)
@@ -67,7 +69,7 @@ func main() {
 	// ตระเตรียม Invoice module
 	invoiceRepository := invRepo.NewInvoiceRepository(db)
 	invoiceUsecase := invUC.NewInvoiceUsecase(invoiceRepository)
-	invoiceHandler := invHandler.NewInvoiceHandler(invoiceUsecase, cfg.Auth.JWTSecret)
+	invoiceHandler := invHandler.NewInvoiceHandler(invoiceUsecase)
 	invoiceHandler.RegisterRoutes(app)
 
 	// สตาร์ทเซิร์ฟเวอร์

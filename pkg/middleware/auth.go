@@ -54,3 +54,19 @@ func JWTMiddleware(secret string) fiber.Handler {
 		return c.Next()
 	}
 }
+
+// JWTMiddlewareExcept returns JWT middleware that skips the check for the
+// provided path prefixes. It is useful when applying authentication globally
+// but keeping some routes (e.g. /auth) public.
+func JWTMiddlewareExcept(secret string, skip ...string) fiber.Handler {
+	base := JWTMiddleware(secret)
+	return func(c *fiber.Ctx) error {
+		path := c.Path()
+		for _, prefix := range skip {
+			if strings.HasPrefix(path, prefix) {
+				return c.Next()
+			}
+		}
+		return base(c)
+	}
+}
