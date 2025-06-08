@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/gorm"
 
 	"invoice_project/internal/log/domain"
@@ -24,7 +23,6 @@ func Logger(db *gorm.DB) fiber.Handler {
 		if uid, ok := c.Locals("user_id").(uint); ok {
 			userIDPtr = &uid
 		}
-		log.Warn(userIDPtr)
 		var username string
 		if name, ok := c.Locals("username").(string); ok {
 			username = name
