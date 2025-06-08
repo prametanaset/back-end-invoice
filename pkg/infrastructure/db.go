@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"io/ioutil"
 
@@ -78,6 +79,12 @@ func LoadConfig(path string) (*AppConfig, error) {
 	}
 	if env := os.Getenv("JWT_EXPIRY_REFRESH"); env != "" {
 		fmt.Sscanf(env, "%d", &cfg.Auth.JWTExpiryRefreshHours)
+	}
+	// If JWTSecret points to a file, read its contents
+	if cfg.Auth.JWTSecret != "" {
+		if b, err := os.ReadFile(cfg.Auth.JWTSecret); err == nil {
+			cfg.Auth.JWTSecret = strings.TrimSpace(string(b))
+		}
 	}
 	return &cfg, nil
 }
