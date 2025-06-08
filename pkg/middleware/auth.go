@@ -1,21 +1,27 @@
 package middleware
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 )
 
-// GenerateJWTWithExpiry สร้าง JWT ระบุอายุเป็น duration ได้
-// GenerateJWTWithExpiry creates a JWT containing the user's ID, username and role
-func GenerateJWTWithExpiry(secret string, userID uint, username, role string, expiry time.Duration) (string, error) {
+// GenerateJWTWithExpiry creates a JWT using a common set of OAuth-style claims.
+func GenerateJWTWithExpiry(secret string, userID uint, role string, expiry time.Duration) (string, error) {
+	now := time.Now()
 	claims := jwt.MapClaims{
-		"user_id":  userID,
-		"username": username,
-		"role":     role,
-		"exp":      time.Now().Add(expiry).Unix(),
+		"iss":   "https://auth.example.com",
+		"sub":   strconv.FormatUint(uint64(userID), 10),
+		"aud":   "https://api.example.com",
+		"scope": role,
+		"exp":   now.Add(expiry).Unix(),
+		"iat":   now.Unix(),
+		"nbf":   now.Unix(),
+		"jti":   uuid.NewString(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
@@ -43,14 +49,15 @@ func JWTMiddleware(secret string) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired token"})
 		}
 		claims := token.Claims.(jwt.MapClaims)
-		// อ่าน user_id และ role จาก claims ใส่ลง Locals
-		if userID, ok := claims["user_id"].(float64); ok {
-			c.Locals("user_id", uint(userID))
+		// Map standard claims back to our context locals
+		if sub, ok := claims["sub"].(string); ok {
+			if id, err := strconv.Atoi(sub); err == nil {
+				c.Locals("user_id", uint(id))
+			}
 		}
-		if role, ok := claims["role"].(string); ok {
-			c.Locals("role", role)
+		if scope, ok := claims["scope"].(string); ok {
+			c.Locals("role", scope)
 		}
-		c.Locals("username", claims["username"].(string))
 		return c.Next()
 	}
 }
