@@ -22,10 +22,7 @@ func NewInvoiceHandler(invUC usecase.InvoiceUsecase, authSecret string) *Invoice
 }
 
 func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
-	var body struct {
-		Customer string  `json:"customer"`
-		Amount   float64 `json:"amount"`
-	}
+	var body CreateInvoiceRequest
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
 	}
