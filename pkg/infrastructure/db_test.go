@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -84,5 +85,33 @@ auth:
 	}
 	if cfg.Auth.JWTSecret != "envsecret" || cfg.Auth.JWTExpiryAccessMin != 30 || cfg.Auth.JWTExpiryRefreshHours != 48 {
 		t.Errorf("auth env override failed: %+v", cfg.Auth)
+	}
+}
+
+func TestLoadConfig_JWTSecretFile(t *testing.T) {
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(secretFile, []byte("file-secret"), 0o644); err != nil {
+		t.Fatalf("failed to write secret file: %v", err)
+	}
+	yaml := `database:
+  host: "db"
+  port: 5432
+  user: "user"
+  password: "pass"
+  dbname: "name"
+  sslmode: "disable"
+auth:
+  jwt_secret: "%s"
+  jwt_expiry_access_minutes: 15
+  jwt_expiry_refresh_hours: 24`
+	yaml = fmt.Sprintf(yaml, secretFile)
+	file := writeTempConfig(t, yaml)
+
+	cfg, err := LoadConfig(file)
+	if err != nil {
+		t.Fatalf("LoadConfig returned error: %v", err)
+	}
+	if cfg.Auth.JWTSecret != "file-secret" {
+		t.Errorf("expected secret from file, got %s", cfg.Auth.JWTSecret)
 	}
 }
