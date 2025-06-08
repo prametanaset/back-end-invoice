@@ -39,6 +39,9 @@ type AppConfig struct {
 }
 
 // LoadConfig อ่าน config จากไฟล์ YAML แล้ว merge กับ ENV ได้
+// ผู้ใช้สามารถกำหนดค่าผ่านตัวแปร ENV เช่น DB_HOST, DB_USER,
+// DB_PASSWORD, DB_NAME, DB_PORT, DB_SSLMODE และ JWT_SECRET
+// เพื่อไม่ต้องแก้ไขไฟล์ config โดยตรง
 func LoadConfig(path string) (*AppConfig, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

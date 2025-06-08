@@ -1,6 +1,6 @@
 # Invoice Project
 
-โปรเจกต์ตัวอย่างสร้างระบบ Invoice ด้วย GoFiber + GORM + PostgreSQL ครับ
+This is a sample invoice system built with GoFiber, GORM and PostgreSQL.
 
 ## Requirements
 
@@ -9,13 +9,26 @@
 - `go install github.com/gofiber/fiber/v2@latest`
 - `go install gorm.io/gorm@latest`
 - `go install gorm.io/driver/postgres@latest`
-- (ถ้าใช้ Wire) `go install github.com/google/wire/cmd/wire@latest`
+- (optional) `go install github.com/google/wire/cmd/wire@latest`
 
-## วิธีใช้งาน
+## Usage
 
-1. สร้างฐานข้อมูล PostgreSQL ชื่อ `invoice_db` แล้วตั้งค่า user/password ให้ตรงกับ `configs/config.yaml`
-2. รันคำสั่ง:
-   ```bash
-   go mod tidy
-   go run cmd/main.go
-# back-end-invoice
+Set the following environment variables to configure the database and JWT secret:
+
+```bash
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_USER=postgres
+export DB_PASSWORD=your-password
+export DB_NAME=invoice_db
+export JWT_SECRET=your-jwt-secret
+```
+
+The application reads `configs/config.yaml` for defaults but any environment variable above will override the values in the file.
+
+Run the project with:
+
+```bash
+go mod tidy
+go run cmd/main.go
+```

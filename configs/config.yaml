@@ -2,17 +2,15 @@ server:
   port: ":8080"
 
 database:
-  host: "43.229.76.109"
+  host: "YOUR_DB_HOST"
   port: 5432
-  user: "postgres"
-  password: "a26c375687"
-  dbname: "admin_tax"
+  user: "YOUR_DB_USER"
+  password: "YOUR_DB_PASSWORD"
+  dbname: "YOUR_DB_NAME"
   sslmode: "disable"
 
 auth:
-  # The JWT secret can either be the secret value itself or a path to a file
-  # containing the secret. When a file path is provided it will be read during
-  # application startup.
-  jwt_secret: "./configs/jwt/private.pem"
+  # JWT secret should be provided via the JWT_SECRET environment variable
+  jwt_secret: ""
   jwt_expiry_access_minutes: 15
   jwt_expiry_refresh_hours: 24
