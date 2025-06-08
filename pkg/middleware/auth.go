@@ -32,6 +32,9 @@ func JWTMiddleware(secret string) fiber.Handler {
 		}
 		tokenString := parts[1]
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+			if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+				return nil, fiber.ErrUnauthorized
+			}
 			return []byte(secret), nil
 		})
 		if err != nil || !token.Valid {
