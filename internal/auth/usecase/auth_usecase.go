@@ -119,8 +119,10 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 	}
 	// เช็คว่า expired หรือยัง
 	if existing.ExpiredAt.Before(time.Now()) {
-		// ถ้า expired ให้ลบทิ้ง
-		u.repo.DeleteRefreshToken(oldRefreshToken)
+		// ถ้า expired ให้ลบทิ้งและคืน error
+		if err := u.repo.DeleteRefreshToken(oldRefreshToken); err != nil {
+			return "", "", err
+		}
 		return "", "", errors.New("refresh token expired")
 	}
 	// ถ้า valid ก็สร้าง access + refresh ใหม่
