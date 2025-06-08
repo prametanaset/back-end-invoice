@@ -58,7 +58,7 @@ func (h *InvoiceHandler) List(c *fiber.Ctx) error {
 }
 
 func (h *InvoiceHandler) RegisterRoutes(app *fiber.App) {
-	api := app.Group("/invoices", middleware.JWTMiddleware(h.authSecret))
+	api := app.Group("/invoices", middleware.JWTMiddleware(h.authSecret), middleware.RequireRoles("user", "admin"))
 	api.Post("/", h.Create)
 	api.Get("/", h.List)
 	api.Get("/:id", h.GetByID)
