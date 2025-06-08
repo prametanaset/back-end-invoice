@@ -26,6 +26,8 @@ export JWT_SECRET=your-jwt-secret
 
 The application reads `configs/config.yaml` for defaults but any environment variable above will override the values in the file.
 
+Users registered via `/auth/register` are created with the `user` role by default. Access to invoice endpoints now requires either the `user` or `admin` role.
+
 Run the project with:
 
 ```bash

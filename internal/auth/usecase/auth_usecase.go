@@ -59,6 +59,7 @@ func (u *authUC) Register(username, password string) error {
 	user := &domain.User{
 		Username: username,
 		Password: password,
+		Role:     "user",
 	}
 	return u.repo.CreateUser(user)
 }
@@ -87,12 +88,12 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 		return "", "", errors.New("invalid credentials")
 	}
 	// สร้าง access token
-	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, u.accessExpiry)
+	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, user.Role, u.accessExpiry)
 	if err != nil {
 		return "", "", err
 	}
 	// สร้าง refresh token (random string หรือ JWT ก็ได้ ในที่นี้ใช้ JWT ง่าย ๆ)
-	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, u.refreshExpiry)
+	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, user.Role, u.refreshExpiry)
 	if err != nil {
 		return "", "", err
 	}
@@ -127,11 +128,11 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 	}
 	// ถ้า valid ก็สร้าง access + refresh ใหม่
 	user := &existing.User
-	newAccess, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, u.accessExpiry)
+	newAccess, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, user.Role, u.accessExpiry)
 	if err != nil {
 		return "", "", err
 	}
-	newRefresh, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, u.refreshExpiry)
+	newRefresh, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Username, user.Role, u.refreshExpiry)
 	if err != nil {
 		return "", "", err
 	}

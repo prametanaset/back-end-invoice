@@ -9,10 +9,12 @@ import (
 )
 
 // GenerateJWTWithExpiry สร้าง JWT ระบุอายุเป็น duration ได้
-func GenerateJWTWithExpiry(secret string, userID uint, username string, expiry time.Duration) (string, error) {
+// GenerateJWTWithExpiry creates a JWT containing the user's ID, username and role
+func GenerateJWTWithExpiry(secret string, userID uint, username, role string, expiry time.Duration) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id":  userID,
 		"username": username,
+		"role":     role,
 		"exp":      time.Now().Add(expiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -41,9 +43,12 @@ func JWTMiddleware(secret string) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired token"})
 		}
 		claims := token.Claims.(jwt.MapClaims)
-		// อ่าน user_id จาก claims ใส่ลง Locals
+		// อ่าน user_id และ role จาก claims ใส่ลง Locals
 		if userID, ok := claims["user_id"].(float64); ok {
 			c.Locals("user_id", uint(userID))
+		}
+		if role, ok := claims["role"].(string); ok {
+			c.Locals("role", role)
 		}
 		c.Locals("username", claims["username"].(string))
 		return c.Next()

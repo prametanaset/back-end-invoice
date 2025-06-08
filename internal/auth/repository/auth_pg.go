@@ -32,6 +32,9 @@ func (r *authPG) CreateUser(user *domain.User) error {
 		return err
 	}
 	user.Password = string(hashed)
+	if user.Role == "" {
+		user.Role = "user"
+	}
 	return r.db.Create(user).Error
 }
 
