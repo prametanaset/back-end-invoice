@@ -1,0 +1,15 @@
+server:
+  port: ":8080"
+
+database:
+  host: "43.229.76.109"
+  port: 5432
+  user: "postgres"
+  password: "a26c375687"
+  dbname: "admin_tax"
+  sslmode: "disable"
+
+auth:
+  jwt_private_key_path: "./configs/jwt/private.pem"
+  jwt_expiry_access_minutes: 15
+  jwt_expiry_refresh_hours: 24
