@@ -21,10 +21,7 @@ func NewAuthHandler(authUC usecase.AuthUsecase, jwtSecret string) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
-	var body struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	var body RegisterRequest
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
 	}
@@ -35,10 +32,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
-	var body struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	var body LoginRequest
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
 	}
@@ -56,9 +50,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
-	var body struct {
-		RefreshToken string `json:"refresh_token"`
-	}
+	var body RefreshRequest
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
 	}
@@ -74,9 +66,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	var body struct {
-		RefreshToken string `json:"refresh_token"`
-	}
+	var body RefreshRequest
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
 	}
