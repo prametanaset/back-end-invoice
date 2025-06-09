@@ -1,10 +1,11 @@
 package usecase
 
 import (
-	"errors"
-
 	"invoice_project/internal/invoice/domain"
 	"invoice_project/internal/invoice/repository"
+	"invoice_project/pkg/apperror"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type InvoiceUsecase interface {
@@ -40,7 +41,7 @@ func (u *invoiceUC) GetInvoice(id uint, userID uint) (*domain.Invoice, error) {
 		return nil, err
 	}
 	if inv == nil || inv.CreatedByID != userID {
-		return nil, errors.New("invoice not found or unauthorized")
+		return nil, apperror.New(fiber.StatusNotFound)
 	}
 	return inv, nil
 }

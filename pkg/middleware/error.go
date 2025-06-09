@@ -1,6 +1,9 @@
 package middleware
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"invoice_project/pkg/apperror"
+)
 
 // ErrorResponse formats an error message for JSON responses.
 func ErrorResponse(message string) fiber.Map {
@@ -10,11 +13,13 @@ func ErrorResponse(message string) fiber.Map {
 // ErrorHandler is a Fiber error handler returning JSON using ErrorResponse.
 func ErrorHandler(c *fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
-	if e, ok := err.(*fiber.Error); ok {
+	switch e := err.(type) {
+	case *apperror.StatusError:
 		code = e.Code
-		if e.Message != "" {
-			err = e
-		}
+	case *fiber.Error:
+		code = e.Code
 	}
-	return c.Status(code).JSON(ErrorResponse(err.Error()))
+
+	msg := apperror.StatusMessage(code)
+	return c.Status(code).JSON(ErrorResponse(msg))
 }
