@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"invoice_project/internal/auth/usecase"
+	"invoice_project/pkg/apperror"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,10 +24,10 @@ func NewAuthHandler(authUC usecase.AuthUsecase, jwtSecret string) *AuthHandler {
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var body RegisterRequest
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	if err := h.authUC.Register(body.Username, body.Password); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return err
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "user registered"})
 }
@@ -34,11 +35,11 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var body LoginRequest
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	accessToken, refreshToken, err := h.authUC.Login(body.Username, body.Password)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return err
 	}
 	// ตอบกลับทั้ง 2 token
 	// เราอาจจะเซ็ต cookie ให้ refresh token ด้วยก็ได้ แต่ในที่นี้เก็บเป็น response JSON ธรรมดา
@@ -52,11 +53,11 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var body RefreshRequest
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	newAccess, newRefresh, err := h.authUC.RefreshAccessToken(body.RefreshToken)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return err
 	}
 	return c.JSON(fiber.Map{
 		"access_token":  newAccess,
@@ -68,10 +69,10 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	var body RefreshRequest
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	if err := h.authUC.Logout(body.RefreshToken); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return err
 	}
 	return c.JSON(fiber.Map{"message": "logged out"})
 }

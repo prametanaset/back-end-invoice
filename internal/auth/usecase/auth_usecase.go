@@ -1,14 +1,15 @@
 package usecase
 
 import (
-	"errors"
 	"time"
 
 	"invoice_project/internal/auth/domain"
 	"invoice_project/internal/auth/repository"
+	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -47,21 +48,24 @@ func (u *authUC) Register(username, password string) error {
 		Password: password,
 	}
 	if err := u.validate.Struct(input); err != nil {
-		return err
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	existing, err := u.repo.GetUserByUsername(username)
 	if err != nil {
 		return err
 	}
 	if existing != nil {
-		return errors.New("username already taken")
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	user := &domain.User{
 		Username: username,
 		Password: password,
 		Role:     "user",
 	}
-	return u.repo.CreateUser(user)
+	if err := u.repo.CreateUser(user); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *authUC) Login(username, password string) (string, string, error) {
@@ -74,18 +78,18 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 		Password: password,
 	}
 	if err := u.validate.Struct(input); err != nil {
-		return "", "", err
+		return "", "", apperror.New(fiber.StatusBadRequest)
 	}
 	user, err := u.repo.GetUserByUsername(username)
 	if err != nil {
 		return "", "", err
 	}
 	if user == nil {
-		return "", "", errors.New("invalid credentials")
+		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// เปรียบเทียบรหัสผ่าน
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", "", errors.New("invalid credentials")
+		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// สร้าง access token
 	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.accessExpiry, "access")
@@ -116,7 +120,7 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 		return "", "", err
 	}
 	if existing == nil {
-		return "", "", errors.New("refresh token not found or revoked")
+		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// เช็คว่า expired หรือยัง
 	if existing.ExpiredAt.Before(time.Now()) {
@@ -124,7 +128,7 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 		if err := u.repo.DeleteRefreshToken(oldRefreshToken); err != nil {
 			return "", "", err
 		}
-		return "", "", errors.New("refresh token expired")
+		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// ถ้า valid ก็สร้าง access + refresh ใหม่
 	user := &existing.User
