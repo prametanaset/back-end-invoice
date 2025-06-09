@@ -10,18 +10,21 @@ import (
 	"github.com/google/uuid"
 )
 
-// GenerateJWTWithExpiry creates a JWT using a common set of OAuth-style claims.
-func GenerateJWTWithExpiry(secret string, userID uint, role string, expiry time.Duration) (string, error) {
+// GenerateJWTWithExpiry creates a JWT using a common set of OAuth-style claims
+// and embeds a token_type so that access and refresh tokens can be
+// differentiated.
+func GenerateJWTWithExpiry(secret string, userID uint, role string, expiry time.Duration, tokenType string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"iss":   "https://auth.example.com",
-		"sub":   strconv.FormatUint(uint64(userID), 10),
-		"aud":   "https://api.example.com",
-		"scope": role,
-		"exp":   now.Add(expiry).Unix(),
-		"iat":   now.Unix(),
-		"nbf":   now.Unix(),
-		"jti":   uuid.NewString(),
+		"iss":        "https://auth.example.com",
+		"sub":        strconv.FormatUint(uint64(userID), 10),
+		"aud":        "https://api.example.com",
+		"scope":      role,
+		"token_type": tokenType,
+		"exp":        now.Add(expiry).Unix(),
+		"iat":        now.Unix(),
+		"nbf":        now.Unix(),
+		"jti":        uuid.NewString(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
@@ -49,6 +52,9 @@ func JWTMiddleware(secret string) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired token"})
 		}
 		claims := token.Claims.(jwt.MapClaims)
+		if typ, ok := claims["token_type"].(string); !ok || typ != "access" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token type"})
+		}
 		// Map standard claims back to our context locals
 		if sub, ok := claims["sub"].(string); ok {
 			if id, err := strconv.Atoi(sub); err == nil {
