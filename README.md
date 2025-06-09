@@ -19,8 +19,8 @@ Set the following environment variables to configure the database and JWT secret
 export DB_HOST=localhost
 export DB_PORT=5432
 export DB_USER=postgres
-export DB_PASSWORD=your-password
-export DB_NAME=invoice_db
+export DB_PASSWORD=a26c375687
+export DB_NAME=admin_tax
 export JWT_SECRET=your-jwt-secret
 ```
 
