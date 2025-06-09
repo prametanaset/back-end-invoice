@@ -47,8 +47,10 @@ func main() {
 		&logModel.UserLog{},
 	)
 
-	// สร้าง Fiber app
-	app := fiber.New()
+	// สร้าง Fiber app พร้อม ErrorHandler กลาง
+	app := fiber.New(fiber.Config{
+		ErrorHandler: middleware.ErrorHandler,
+	})
 
 	// Logger middleware
 	app.Use(middleware.Logger(db))
