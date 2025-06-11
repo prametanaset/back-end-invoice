@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"invoice_project/pkg/apperror"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +36,7 @@ func JWTMiddleware(secret string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header"})
+			return apperror.New(fiber.StatusUnauthorized)
 		}
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {

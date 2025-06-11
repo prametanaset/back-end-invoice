@@ -14,7 +14,7 @@ type AuthRepository interface {
 	GetUserByUsername(username string) (*domain.User, error)
 	SaveRefreshToken(token *domain.RefreshToken) error
 	GetRefreshToken(rawToken string) (*domain.RefreshToken, error)
-	DeleteRefreshToken(rawToken string) error
+	RevokeRefreshToken(rawToken string) error
 	DeleteAllRefreshTokensForUser(userID uint) error
 }
 
@@ -69,7 +69,7 @@ func (r *authPG) GetRefreshToken(rawToken string) (*domain.RefreshToken, error) 
 	return &rt, nil
 }
 
-func (r *authPG) DeleteRefreshToken(rawToken string) error {
+func (r *authPG) RevokeRefreshToken(rawToken string) error {
 	return r.db.Where("token = ?", rawToken).Delete(&domain.RefreshToken{}).Error
 }
 

@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -15,10 +17,11 @@ type User struct {
 
 // RefreshToken เก็บ refresh token ของแต่ละ user
 type RefreshToken struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement"`
-	Token     string    `gorm:"unique;not null"`
-	UserID    uint      `gorm:"not null;index"`
-	User      User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
-	ExpiredAt time.Time `gorm:"not null"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uint           `gorm:"primaryKey;autoIncrement"`
+	Token     string         `gorm:"unique;not null"`
+	UserID    uint           `gorm:"not null;index"`
+	User      User           `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	ExpiredAt time.Time      `gorm:"not null"`
+	CreatedAt time.Time      `json:"created_at"`
+	DeleteAt  gorm.DeletedAt `gorm:"index" json:"delete_at"`
 }

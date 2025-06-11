@@ -71,6 +71,10 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
+	if body.RefreshToken == "" {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+
 	if err := h.authUC.Logout(body.RefreshToken); err != nil {
 		return err
 	}

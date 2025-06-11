@@ -125,7 +125,7 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 	// เช็คว่า expired หรือยัง
 	if existing.ExpiredAt.Before(time.Now()) {
 		// ถ้า expired ให้ลบทิ้งและคืน error
-		if err := u.repo.DeleteRefreshToken(oldRefreshToken); err != nil {
+		if err := u.repo.RevokeRefreshToken(oldRefreshToken); err != nil {
 			return "", "", err
 		}
 		return "", "", apperror.New(fiber.StatusUnauthorized)
@@ -141,7 +141,7 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 		return "", "", err
 	}
 	// อัปเดตใน DB: ลบ old แล้วเพิ่ม new
-	if err := u.repo.DeleteRefreshToken(oldRefreshToken); err != nil {
+	if err := u.repo.RevokeRefreshToken(oldRefreshToken); err != nil {
 		return "", "", err
 	}
 	newRT := &domain.RefreshToken{
@@ -157,5 +157,5 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 
 func (u *authUC) Logout(refreshToken string) error {
 	// ลบ refresh token ออกจาก DB เลย
-	return u.repo.DeleteRefreshToken(refreshToken)
+	return u.repo.RevokeRefreshToken(refreshToken)
 }

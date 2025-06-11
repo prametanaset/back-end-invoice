@@ -35,6 +35,7 @@ func (r *invoicePG) GetInvoiceByID(id uint) (*domain.Invoice, error) {
 		}
 		return nil, err
 	}
+
 	return &inv, nil
 }
 
