@@ -19,6 +19,11 @@ import (
 	invRepo "invoice_project/internal/invoice/repository"
 	invUC "invoice_project/internal/invoice/usecase"
 
+	merchantHTTP "invoice_project/internal/merchant/delivery/http"
+	merchModel "invoice_project/internal/merchant/domain"
+	merchRepo "invoice_project/internal/merchant/repository"
+	merchUC "invoice_project/internal/merchant/usecase"
+
 	logModel "invoice_project/internal/log/domain"
 )
 
@@ -44,6 +49,12 @@ func main() {
 		&authModel.User{},
 		&authModel.RefreshToken{},
 		&invModel.Invoice{},
+		&merchModel.Merchant{},
+		&merchModel.Store{},
+		&merchModel.StoreAddress{},
+		&merchModel.MerchantContact{},
+		&merchModel.PersonMerchant{},
+		&merchModel.CompanyMerchant{},
 		&logModel.UserLog{},
 	)
 
@@ -73,6 +84,12 @@ func main() {
 	invoiceUsecase := invUC.NewInvoiceUsecase(invoiceRepository)
 	invoiceHandler := invHandler.NewInvoiceHandler(invoiceUsecase)
 	invoiceHandler.RegisterRoutes(app)
+
+	// Merchant module
+	merchRepository := merchRepo.NewMerchantRepository(db)
+	merchUsecase := merchUC.NewMerchantUsecase(merchRepository)
+	merchantHandler := merchantHTTP.NewMerchantHandler(merchUsecase)
+	merchantHandler.RegisterRoutes(app)
 
 	// สตาร์ทเซิร์ฟเวอร์
 	log.Printf("Server is running on port %s\n", cfg.Server.Port)
