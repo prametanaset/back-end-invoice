@@ -3,7 +3,9 @@ package usecase
 import (
 	"invoice_project/internal/merchant/domain"
 	"invoice_project/internal/merchant/repository"
+	"invoice_project/pkg/apperror"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -69,6 +71,16 @@ func (u *merchantUC) ListStores(merchantID uuid.UUID) ([]domain.Store, error) {
 }
 
 func (u *merchantUC) AddPersonInfo(merchantID uuid.UUID, firstName, lastName string, vatNo *string) (*domain.PersonMerchant, error) {
+	m, err := u.repo.GetMerchant(merchantID)
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return nil, apperror.New(fiber.StatusNotFound)
+	}
+	if m.MerchantType != "person" {
+		return nil, apperror.New(fiber.StatusBadRequest)
+	}
 	p := &domain.PersonMerchant{
 		MerchantID: merchantID,
 		FirstName:  firstName,
@@ -82,6 +94,16 @@ func (u *merchantUC) AddPersonInfo(merchantID uuid.UUID, firstName, lastName str
 }
 
 func (u *merchantUC) AddCompanyInfo(merchantID uuid.UUID, companyName, vatNo string) (*domain.CompanyMerchant, error) {
+	m, err := u.repo.GetMerchant(merchantID)
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return nil, apperror.New(fiber.StatusNotFound)
+	}
+	if m.MerchantType != "company" {
+		return nil, apperror.New(fiber.StatusBadRequest)
+	}
 	c := &domain.CompanyMerchant{
 		MerchantID:  merchantID,
 		CompanyName: companyName,
