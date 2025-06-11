@@ -24,6 +24,11 @@ import (
 	merchRepo "invoice_project/internal/merchant/repository"
 	merchUC "invoice_project/internal/merchant/usecase"
 
+	customerHTTP "invoice_project/internal/customer/delivery/http"
+	customerModel "invoice_project/internal/customer/domain"
+	customerRepo "invoice_project/internal/customer/repository"
+	customerUC "invoice_project/internal/customer/usecase"
+
 	logModel "invoice_project/internal/log/domain"
 )
 
@@ -55,6 +60,11 @@ func main() {
 		&merchModel.MerchantContact{},
 		&merchModel.PersonMerchant{},
 		&merchModel.CompanyMerchant{},
+		&customerModel.Customer{},
+		&customerModel.CompanyCustomer{},
+		&customerModel.PersonCustomer{},
+		&customerModel.CustomerAddress{},
+		&customerModel.CustomerContact{},
 		&logModel.UserLog{},
 	)
 
@@ -90,6 +100,12 @@ func main() {
 	merchUsecase := merchUC.NewMerchantUsecase(merchRepository)
 	merchantHandler := merchantHTTP.NewMerchantHandler(merchUsecase)
 	merchantHandler.RegisterRoutes(app)
+
+	// Customer module
+	customerRepository := customerRepo.NewCustomerRepository(db)
+	customerUseCase := customerUC.NewCustomerUseCase(customerRepository)
+	customerHandler := customerHTTP.NewCustomerHandler(customerUseCase)
+	customerHandler.RegisterRoutes(app)
 
 	// สตาร์ทเซิร์ฟเวอร์
 	log.Printf("Server is running on port %s\n", cfg.Server.Port)
