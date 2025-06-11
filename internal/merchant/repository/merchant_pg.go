@@ -10,6 +10,7 @@ import (
 type MerchantRepository interface {
 	CreateMerchant(m *domain.Merchant) error
 	GetMerchantByUser(userID uint) (*domain.Merchant, error)
+	GetMerchant(id uuid.UUID) (*domain.Merchant, error)
 	CreateStore(store *domain.Store, addr *domain.StoreAddress) error
 	ListStores(merchantID uuid.UUID) ([]domain.Store, error)
 	CreatePerson(p *domain.PersonMerchant) error
@@ -31,6 +32,18 @@ func (r *merchantPG) CreateMerchant(m *domain.Merchant) error {
 func (r *merchantPG) GetMerchantByUser(userID uint) (*domain.Merchant, error) {
 	var m domain.Merchant
 	err := r.db.Where("user_id = ?", userID).First(&m).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &m, nil
+}
+
+func (r *merchantPG) GetMerchant(id uuid.UUID) (*domain.Merchant, error) {
+	var m domain.Merchant
+	err := r.db.First(&m, "id = ?", id).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
