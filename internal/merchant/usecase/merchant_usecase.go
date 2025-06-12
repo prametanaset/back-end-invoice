@@ -53,6 +53,18 @@ func (u *merchantUC) GetMyMerchant(userID uint) (*domain.Merchant, error) {
 }
 
 func (u *merchantUC) CreateMerchant(userID uint, merchantType string) (*domain.Merchant, error) {
+	if merchantType != "person" && merchantType != "company" {
+		return nil, apperror.New(fiber.StatusBadRequest)
+	}
+
+	exist, err := u.repo.GetMerchantByUserAndType(userID, merchantType)
+	if err != nil {
+		return nil, err
+	}
+	if exist != nil {
+		return nil, apperror.New(fiber.StatusConflict)
+	}
+
 	m := &domain.Merchant{UserID: userID, MerchantType: merchantType}
 	if err := u.repo.CreateMerchant(m); err != nil {
 		return nil, err
