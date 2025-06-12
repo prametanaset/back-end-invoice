@@ -28,6 +28,8 @@ The application reads `configs/config.yaml` for defaults but any environment var
 
 Users registered via `/auth/register` are created with the `user` role by default. Access to invoice endpoints now requires either the `user` or `admin` role.
 
+Once authenticated you can fetch the current user's profile with `GET /me` using the access token returned from `/auth/login`.
+
 Run the project with:
 
 ```bash
