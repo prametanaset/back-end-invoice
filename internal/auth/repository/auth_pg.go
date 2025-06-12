@@ -12,6 +12,7 @@ import (
 type AuthRepository interface {
 	CreateUser(user *domain.User) error
 	GetUserByUsername(username string) (*domain.User, error)
+	GetUserByID(id uint) (*domain.User, error)
 	SaveRefreshToken(token *domain.RefreshToken) error
 	GetRefreshToken(rawToken string) (*domain.RefreshToken, error)
 	RevokeRefreshToken(rawToken string) error
@@ -41,6 +42,18 @@ func (r *authPG) CreateUser(user *domain.User) error {
 func (r *authPG) GetUserByUsername(username string) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *authPG) GetUserByID(id uint) (*domain.User, error) {
+	var user domain.User
+	err := r.db.First(&user, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

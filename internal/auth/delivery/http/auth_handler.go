@@ -5,6 +5,7 @@ import (
 
 	"invoice_project/internal/auth/usecase"
 	"invoice_project/pkg/apperror"
+	"invoice_project/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -81,6 +82,18 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "logged out"})
 }
 
+func (h *AuthHandler) Me(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return apperror.New(fiber.StatusUnauthorized)
+	}
+	user, err := h.authUC.GetProfile(userID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(user)
+}
+
 // RegisterRoutes สำหรับ auth
 func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth := app.Group("/auth")
@@ -88,4 +101,5 @@ func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth.Post("/login", h.Login)
 	apiAuth.Post("/refresh", h.Refresh)
 	apiAuth.Post("/logout", h.Logout)
+	app.Get("/me", middleware.RequireRoles("user", "admin"), h.Me)
 }

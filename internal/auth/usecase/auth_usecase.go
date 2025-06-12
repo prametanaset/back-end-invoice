@@ -18,6 +18,7 @@ type AuthUsecase interface {
 	Login(username, password string) (accessToken string, refreshToken string, err error)
 	RefreshAccessToken(oldRefreshToken string) (newAccessToken string, newRefreshToken string, err error)
 	Logout(refreshToken string) error
+	GetProfile(userID uint) (*domain.User, error)
 }
 
 type authUC struct {
@@ -158,4 +159,15 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 func (u *authUC) Logout(refreshToken string) error {
 	// ลบ refresh token ออกจาก DB เลย
 	return u.repo.RevokeRefreshToken(refreshToken)
+}
+
+func (u *authUC) GetProfile(userID uint) (*domain.User, error) {
+	user, err := u.repo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, apperror.New(fiber.StatusNotFound)
+	}
+	return user, nil
 }
