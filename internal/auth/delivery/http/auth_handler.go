@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"invoice_project/internal/auth/usecase"
+	merchUC "invoice_project/internal/merchant/usecase"
 	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
 
@@ -11,14 +12,16 @@ import (
 )
 
 type AuthHandler struct {
-	authUC    usecase.AuthUsecase
-	jwtSecret string
+	authUC     usecase.AuthUsecase
+	merchantUC merchUC.MerchantUsecase
+	jwtSecret  string
 }
 
-func NewAuthHandler(authUC usecase.AuthUsecase, jwtSecret string) *AuthHandler {
+func NewAuthHandler(authUC usecase.AuthUsecase, merchantUC merchUC.MerchantUsecase, jwtSecret string) *AuthHandler {
 	return &AuthHandler{
-		authUC:    authUC,
-		jwtSecret: jwtSecret,
+		authUC:     authUC,
+		merchantUC: merchantUC,
+		jwtSecret:  jwtSecret,
 	}
 }
 
@@ -91,7 +94,37 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(user)
+
+	resp := fiber.Map{"user": user}
+
+	m, err := h.merchantUC.GetMyMerchant(userID)
+	if err != nil {
+		return err
+	}
+	if m != nil {
+		merchResp := fiber.Map{"merchant": m}
+		switch m.MerchantType {
+		case "person":
+			p, err := h.merchantUC.GetPerson(m.ID)
+			if err != nil {
+				return err
+			}
+			if p != nil {
+				merchResp["person"] = p
+			}
+		case "company":
+			comp, err := h.merchantUC.GetCompany(m.ID)
+			if err != nil {
+				return err
+			}
+			if comp != nil {
+				merchResp["company"] = comp
+			}
+		}
+		resp["merchant_info"] = merchResp
+	}
+
+	return c.JSON(resp)
 }
 
 // RegisterRoutes สำหรับ auth
