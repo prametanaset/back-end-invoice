@@ -29,6 +29,11 @@ import (
 	customerRepo "invoice_project/internal/customer/repository"
 	customerUC "invoice_project/internal/customer/usecase"
 
+	productHTTP "invoice_project/internal/product/delivery/http"
+	productModel "invoice_project/internal/product/domain"
+	productRepo "invoice_project/internal/product/repository"
+	productUC "invoice_project/internal/product/usecase"
+
 	logModel "invoice_project/internal/log/domain"
 )
 
@@ -65,6 +70,8 @@ func main() {
 		&customerModel.PersonCustomer{},
 		&customerModel.CustomerAddress{},
 		&customerModel.CustomerContact{},
+		&productModel.Product{},
+		&productModel.ProductImage{},
 		&logModel.UserLog{},
 	)
 
@@ -106,6 +113,13 @@ func main() {
 	customerUseCase := customerUC.NewCustomerUseCase(customerRepository)
 	customerHandler := customerHTTP.NewCustomerHandler(customerUseCase)
 	customerHandler.RegisterRoutes(app)
+
+	// Product module
+	productRepository := productRepo.NewProductRepository(db)
+	productUsecase := productUC.NewProductUseCase(productRepository)
+	productHandler := productHTTP.NewProductHandler(productUsecase)
+	productHandler.RegisterRoutes(app)
+
 
 	// สตาร์ทเซิร์ฟเวอร์
 	log.Printf("Server is running on port %s\n", cfg.Server.Port)
