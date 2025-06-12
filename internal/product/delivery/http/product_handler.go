@@ -71,7 +71,7 @@ func (h *ProductHandler) ListProducts(c *fiber.Ctx) error {
 
 	products, err := h.uc.ListProducts(c.Context(), storeID)
 	if err != nil {
-		return apperror.New(fiber.StatusInternalServerError)
+		return apperror.New(fiber.StatusBadRequest)
 	}
 
 	return c.JSON(products)
@@ -85,7 +85,7 @@ func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 
 	err := h.uc.UpdateProduct(c.Context(), &req.Product, req.ProductImage)
 	if err != nil {
-		return apperror.New(fiber.StatusInternalServerError)
+		return apperror.New(fiber.StatusBadRequest)
 	}
 
 	return c.JSON(fiber.Map{"message": "Product updated successfully"})
@@ -100,7 +100,7 @@ func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 
 	err = h.uc.DeleteProduct(c.Context(), uint(id))
 	if err != nil {
-		return apperror.New(fiber.StatusInternalServerError)
+		return apperror.New(fiber.StatusBadRequest)
 	}
 
 	return c.JSON(fiber.Map{"message": "Product deleted successfully"})
