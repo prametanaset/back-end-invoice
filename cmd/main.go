@@ -85,6 +85,12 @@ func main() {
 	// Global JWT middleware except for auth routes
 	app.Use(middleware.JWTMiddlewareExcept(cfg.Auth.JWTSecret, "/auth"))
 
+	// Merchant module
+	merchRepository := merchRepo.NewMerchantRepository(db)
+	merchUsecase := merchUC.NewMerchantUsecase(merchRepository)
+	merchantHandler := merchantHTTP.NewMerchantHandler(merchUsecase)
+	merchantHandler.RegisterRoutes(app)
+
 	// ตระเตรียม Auth module
 	authRepository := authRepo.NewAuthRepository(db)
 	authUsecase := authUC.NewAuthUsecase(
@@ -93,7 +99,7 @@ func main() {
 		cfg.Auth.JWTExpiryAccessMin,
 		cfg.Auth.JWTExpiryRefreshHours,
 	)
-	authHandler := http.NewAuthHandler(authUsecase, cfg.Auth.JWTSecret)
+	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret)
 	authHandler.RegisterRoutes(app)
 
 	// ตระเตรียม Invoice module
@@ -101,12 +107,6 @@ func main() {
 	invoiceUsecase := invUC.NewInvoiceUsecase(invoiceRepository)
 	invoiceHandler := invHandler.NewInvoiceHandler(invoiceUsecase)
 	invoiceHandler.RegisterRoutes(app)
-
-	// Merchant module
-	merchRepository := merchRepo.NewMerchantRepository(db)
-	merchUsecase := merchUC.NewMerchantUsecase(merchRepository)
-	merchantHandler := merchantHTTP.NewMerchantHandler(merchUsecase)
-	merchantHandler.RegisterRoutes(app)
 
 	// Customer module
 	customerRepository := customerRepo.NewCustomerRepository(db)
@@ -119,7 +119,6 @@ func main() {
 	productUsecase := productUC.NewProductUseCase(productRepository)
 	productHandler := productHTTP.NewProductHandler(productUsecase)
 	productHandler.RegisterRoutes(app)
-
 
 	// สตาร์ทเซิร์ฟเวอร์
 	log.Printf("Server is running on port %s\n", cfg.Server.Port)

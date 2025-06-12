@@ -18,6 +18,8 @@ type MerchantUsecase interface {
 	AddCompanyInfo(merchantID uuid.UUID, companyName, vatNo string) (*domain.CompanyMerchant, error)
 	AddContact(merchantID uuid.UUID, contactType, contactValue string) (*domain.MerchantContact, error)
 	ListContacts(merchantID uuid.UUID) ([]domain.MerchantContact, error)
+	GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, error)
+	GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error)
 }
 
 // StoreAddressInput holds address fields when creating a store.
@@ -129,4 +131,12 @@ func (u *merchantUC) AddContact(merchantID uuid.UUID, contactType, contactValue 
 
 func (u *merchantUC) ListContacts(merchantID uuid.UUID) ([]domain.MerchantContact, error) {
 	return u.repo.ListContacts(merchantID)
+}
+
+func (u *merchantUC) GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, error) {
+	return u.repo.GetPerson(merchantID)
+}
+
+func (u *merchantUC) GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error) {
+	return u.repo.GetCompany(merchantID)
 }

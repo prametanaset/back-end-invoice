@@ -17,6 +17,8 @@ type MerchantRepository interface {
 	CreateCompany(c *domain.CompanyMerchant) error
 	CreateContact(contact *domain.MerchantContact) error
 	ListContacts(merchantID uuid.UUID) ([]domain.MerchantContact, error)
+	GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, error)
+	GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error)
 }
 
 type merchantPG struct{ db *gorm.DB }
@@ -91,4 +93,28 @@ func (r *merchantPG) ListContacts(merchantID uuid.UUID) ([]domain.MerchantContac
 		return nil, err
 	}
 	return contacts, nil
+}
+
+func (r *merchantPG) GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, error) {
+	var p domain.PersonMerchant
+	err := r.db.Where("merchant_id = ?", merchantID).First(&p).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *merchantPG) GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error) {
+	var c domain.CompanyMerchant
+	err := r.db.Where("merchant_id = ?", merchantID).First(&c).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &c, nil
 }
