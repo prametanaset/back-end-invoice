@@ -8,6 +8,7 @@ import (
 	"invoice_project/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"invoice_project/internal/auth/delivery/http"
 	authModel "invoice_project/internal/auth/domain"
@@ -79,6 +80,12 @@ func main() {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middleware.ErrorHandler,
 	})
+
+	// ✅ เปิดใช้งาน CORS สำหรับทุก origin (เพื่อเริ่มต้น)
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+	}))
 
 	// Logger middleware
 	app.Use(middleware.Logger(db))
