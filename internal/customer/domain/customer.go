@@ -12,9 +12,9 @@ type Customer struct {
 	CustomerType string       `gorm:"type:text" json:"customer_type"`
 	Status       string       `gorm:"type:text" json:"status"`
 	CreatedAt    time.Time    `json:"created_at"`
-	CreatedBy    string       `gorm:"type:text" json:"created_by"`
+	CreatedBy    uint         `gorm:"not null" json:"created_by"`
 	UpdatedAt    time.Time    `json:"updated_at"`
-	UpdatedBy    string       `gorm:"type:text" json:"updated_by"`
+	UpdatedBy    uint         `gorm:"not null" json:"updated_by"`
 
 	// ✅ Add these relationships
 	CompanyCustomer  *CompanyCustomer    `gorm:"foreignKey:CustomerID" json:"company_customer,omitempty"`

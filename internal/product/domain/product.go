@@ -16,6 +16,7 @@ type Product struct {
 	VatRate   int       `gorm:"not null" json:"vat_rate"`   
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+
 }
 
 type ProductImage struct {

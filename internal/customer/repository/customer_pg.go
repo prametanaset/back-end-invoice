@@ -19,8 +19,8 @@ type CustomerRepository interface {
 		address *domain.CustomerAddress,
 		contacts []domain.CustomerContact,
 	) error
-	GetCustomer(ctx context.Context, id uint) (*domain.Customer, error)
-	ListCustomer(storeID uuid.UUID) ([]domain.Customer, error)
+	GetCustomer(ctx context.Context, id uint) (*domain.Customer, *domain.CompanyCustomer, *domain.PersonCustomer, []domain.CustomerContact, error)
+	ListCustomer(ctx context.Context, storeID uuid.UUID) ([]domain.Customer,  error)
 	UpdateCustomer(ctx context.Context,
 		m *domain.Customer,
 		person *domain.PersonCustomer,
@@ -89,8 +89,11 @@ func (r *customerRepository) CreateCustomer(ctx context.Context,m *domain.Custom
 	})
 }
 
-// GetCustomer ดึงข้อมูลลูกค้าตาม id พร้อม preload ความสัมพันธ์
-func (r *customerRepository) GetCustomer(ctx context.Context, id uint) (*domain.Customer, error) {
+func (r *customerRepository) GetCustomer(
+	ctx context.Context,
+	id uint,
+) (*domain.Customer, *domain.CompanyCustomer, *domain.PersonCustomer, []domain.CustomerContact, error) {
+
 	var customer domain.Customer
 	err := r.db.WithContext(ctx).
 		Preload("CompanyCustomer").
@@ -99,21 +102,38 @@ func (r *customerRepository) GetCustomer(ctx context.Context, id uint) (*domain.
 		Preload("CustomerContact").
 		Where("id = ?", id).
 		First(&customer).Error
+
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, nil, err
 	}
-	return &customer, nil
+
+	// ส่งออกข้อมูลจาก relation แยกกลับไป
+	return &customer,
+		customer.CompanyCustomer,
+		customer.PersonCustomer,
+		customer.CustomerContact,
+		nil
 }
 
-// ListCustomer ดึงรายชื่อลูกค้าทั้งหมดของร้าน
-func (r *customerRepository) ListCustomer(storeID uuid.UUID) ([]domain.Customer, error) {
+
+func (r *customerRepository) ListCustomer(ctx context.Context, storeID uuid.UUID) ([]domain.Customer, error) {
 	var customers []domain.Customer
-	err := r.db.Where("store_id = ?", storeID).Find(&customers).Error
+	err := r.db.WithContext(ctx).
+		Preload("CompanyCustomer").
+		Preload("PersonCustomer").
+		Preload("CustomerAddress").
+		Preload("CustomerContact").
+		Where("store_id = ?", storeID).
+		Find(&customers).Error
+
 	if err != nil {
 		return nil, err
 	}
+
 	return customers, nil
 }
+
+
 
 // UpdateCustomer อัปเดตข้อมูลลูกค้า
 func (r *customerRepository) UpdateCustomer(

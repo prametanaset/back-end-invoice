@@ -1,6 +1,7 @@
 package http
 
 import (
+	"invoice_project/internal/customer/domain"
 	"invoice_project/internal/customer/usecase"
 	"invoice_project/pkg/middleware"
 	"strconv"
@@ -12,6 +13,14 @@ import (
 type CustomerHandler struct {
 	usecase usecase.CustomerUseCase
 }
+
+type CustomerResponse struct {
+    Customer        *domain.Customer        `json:"customer"`
+    Company         *domain.CompanyCustomer `json:"company,omitempty"`
+    Person          *domain.PersonCustomer  `json:"person,omitempty"`
+    Contact         []domain.CustomerContact `json:"contact,omitempty"`
+}
+
 
 func NewCustomerHandler(uc usecase.CustomerUseCase) *CustomerHandler {
 	return &CustomerHandler{usecase: uc}
@@ -55,12 +64,19 @@ func (h *CustomerHandler) GetCustomerByID(c *fiber.Ctx) error {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid ID"})
     }
 
-    customer, err := h.usecase.GetCustomerByID(c.Context(), uint(idUint))
+    customer, company, person, contact, err := h.usecase.GetCustomerByID(c.Context(), uint(idUint))
     if err != nil {
-        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Customer not found"})
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Customer not found"})
     }
 
-    return c.JSON(customer)
+    res := CustomerResponse{
+        Customer: customer,
+        Company:  company,
+        Person:   person,
+        Contact:  contact,
+    }
+
+    return c.JSON(res)
 }
 
 
@@ -79,6 +95,8 @@ func (h *CustomerHandler) ListCustomer(c *fiber.Ctx) error {
 
 	return c.JSON(customers)
 }
+
+
 
 // PUT /customers/:id
 func (h *CustomerHandler) UpdateCustomer(c *fiber.Ctx) error {

@@ -20,8 +20,8 @@ type CustomerUseCase interface {
 		address *domain.CustomerAddress,
 		contacts []domain.CustomerContact,
 	) error
-	GetCustomerByID(ctx context.Context, id uint) (*domain.Customer, error)
-	ListCustomer(ctx context.Context, storeID uuid.UUID) ([]domain.Customer, error)
+	GetCustomerByID(ctx context.Context, id uint) (*domain.Customer, *domain.CompanyCustomer, *domain.PersonCustomer, []domain.CustomerContact, error)
+	ListCustomer(ctx context.Context, storeID uuid.UUID) ([]domain.Customer,  error)
 	UpdateCustomer(
 		ctx context.Context,
 		customer *domain.Customer,
@@ -63,14 +63,14 @@ func (uc *customerUseCase) CreateCustomer(
 
 
 // GetCustomerByID ดึงลูกค้าตาม ID
-func (uc *customerUseCase) GetCustomerByID(ctx context.Context, id uint) (*domain.Customer, error) {
+func (uc *customerUseCase) GetCustomerByID(ctx context.Context, id uint) (*domain.Customer, *domain.CompanyCustomer, *domain.PersonCustomer, []domain.CustomerContact, error) {
 	return uc.repo.GetCustomer(ctx, id)
 }
 
 
 // ListCustomer ดึงลูกค้าทั้งหมดของร้าน
-func (uc *customerUseCase) ListCustomer(ctx context.Context, storeID uuid.UUID) ([]domain.Customer, error) {
-	return uc.repo.ListCustomer(storeID)
+func (uc *customerUseCase) ListCustomer(ctx context.Context, storeID uuid.UUID) ([]domain.Customer,  error) {
+	return uc.repo.ListCustomer(ctx, storeID)
 }
 
 // UpdateCustomer อัปเดตข้อมูลลูกค้า
