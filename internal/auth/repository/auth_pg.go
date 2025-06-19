@@ -18,6 +18,8 @@ type AuthRepository interface {
 	GetSessionByToken(token string) (*domain.UserSession, error)
 	RevokeSession(token string) error
 	DeleteAllSessionsForUser(userID uuid.UUID) error
+	CreateLoginMethod(method *domain.UserLoginMethod) error
+	GetUserByLoginMethod(provider, providerUID string) (*domain.User, error)
 }
 
 type authPG struct {
@@ -91,4 +93,20 @@ func (r *authPG) RevokeSession(token string) error {
 
 func (r *authPG) DeleteAllSessionsForUser(userID uuid.UUID) error {
 	return r.db.Where("user_id = ?", userID).Delete(&domain.UserSession{}).Error
+}
+
+func (r *authPG) CreateLoginMethod(m *domain.UserLoginMethod) error {
+	return r.db.Create(m).Error
+}
+
+func (r *authPG) GetUserByLoginMethod(provider, providerUID string) (*domain.User, error) {
+	var lm domain.UserLoginMethod
+	err := r.db.Preload("User").Where("provider = ? AND provider_uid = ?", provider, providerUID).First(&lm).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &lm.User, nil
 }

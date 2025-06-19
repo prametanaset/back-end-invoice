@@ -16,3 +16,10 @@ type LoginRequest struct {
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
+
+// OAuthLoginRequest represents OAuth login payload.
+type OAuthLoginRequest struct {
+	Provider    string `json:"provider"`
+	ProviderUID string `json:"provider_uid"`
+	Username    string `json:"username"`
+}
