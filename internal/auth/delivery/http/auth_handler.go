@@ -55,6 +55,29 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	})
 }
 
+func (h *AuthHandler) OAuthLogin(c *fiber.Ctx) error {
+	var body OAuthLoginRequest
+	if err := c.BodyParser(&body); err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if body.Provider == "" || body.ProviderUID == "" {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	username := body.Username
+	if username == "" {
+		username = body.Provider + "_" + body.ProviderUID
+	}
+	accessToken, refreshToken, err := h.authUC.OAuthLogin(body.Provider, body.ProviderUID, username)
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"expires_at":    time.Now().Add(15 * time.Minute),
+	})
+}
+
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var body RefreshRequest
 	if err := c.BodyParser(&body); err != nil {
@@ -133,6 +156,7 @@ func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth := app.Group("/auth")
 	apiAuth.Post("/register", h.Register)
 	apiAuth.Post("/login", h.Login)
+	apiAuth.Post("/oauth-login", h.OAuthLogin)
 	apiAuth.Post("/refresh", h.Refresh)
 	apiAuth.Post("/logout", h.Logout)
 	app.Get("/me", middleware.RequireRoles("user", "admin"), h.Me)

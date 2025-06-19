@@ -17,6 +17,7 @@ import (
 type AuthUsecase interface {
 	Register(username, password string) error
 	Login(username, password string) (accessToken string, refreshToken string, err error)
+	OAuthLogin(provider, providerUID, username string) (accessToken string, refreshToken string, err error)
 	RefreshAccessToken(oldRefreshToken string) (newAccessToken string, newRefreshToken string, err error)
 	Logout(refreshToken string) error
 	GetProfile(userID uuid.UUID) (*domain.User, error)
@@ -115,6 +116,52 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 	return accessToken, refreshToken, nil
 }
 
+// OAuthLogin authenticates or registers a user using an external provider ID.
+func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, string, error) {
+	// Check if login method already exists
+	user, err := u.repo.GetUserByLoginMethod(provider, providerUID)
+	if err != nil {
+		return "", "", err
+	}
+	if user == nil {
+		// Create user if not exists
+		user = &domain.User{
+			Username:     username,
+			PasswordHash: uuid.NewString(), // random password
+			Role:         "user",
+			IsVerified:   true,
+		}
+		if err := u.repo.CreateUser(user); err != nil {
+			return "", "", err
+		}
+		lm := &domain.UserLoginMethod{
+			UserID:      user.ID,
+			Provider:    provider,
+			ProviderUID: providerUID,
+		}
+		if err := u.repo.CreateLoginMethod(lm); err != nil {
+			return "", "", err
+		}
+	}
+	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.accessExpiry, "access")
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.refreshExpiry, "refresh")
+	if err != nil {
+		return "", "", err
+	}
+	sess := &domain.UserSession{
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		ExpiresAt:    time.Now().Add(u.refreshExpiry),
+	}
+	if err := u.repo.CreateSession(sess); err != nil {
+		return "", "", err
+	}
+	return accessToken, refreshToken, nil
+}
+
 func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, error) {
 	// หา record จาก DB
 	existing, err := u.repo.GetSessionByToken(oldRefreshToken)
@@ -125,7 +172,7 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// เช็คว่า expired หรือยัง
-        if existing.ExpiresAt.Before(time.Now()) {
+	if existing.ExpiresAt.Before(time.Now()) {
 		// ถ้า expired ให้ลบทิ้งและคืน error
 		if err := u.repo.RevokeSession(oldRefreshToken); err != nil {
 			return "", "", err
