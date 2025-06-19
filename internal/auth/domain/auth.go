@@ -24,7 +24,7 @@ type UserSession struct {
 	ID           uint      `gorm:"primaryKey;autoIncrement"`
 	UserID       uuid.UUID `gorm:"type:uuid;not null;index"`
 	UserAgent    string    `json:"user_agent"`
-	IPAddress    string    `gorm:"type:inet" json:"ip_address"`
+	IPAddress    *string   `gorm:"type:inet" json:"ip_address"`
 	RefreshToken string    `gorm:"unique;not null"`
 	ExpiresAt    time.Time `gorm:"not null"`
 	Revoked      bool      `gorm:"default:false"`
