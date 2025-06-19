@@ -27,7 +27,7 @@ type UserSession struct {
 	IPAddress    *string   `gorm:"type:inet" json:"ip_address"`
 	RefreshToken string    `gorm:"unique;not null"`
 	ExpiresAt    time.Time `gorm:"not null"`
-	Revoked      bool      `gorm:"default:false"`
+	RevokedAt    *time.Time
 	CreatedAt    time.Time `json:"created_at"`
 	User         User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
