@@ -79,6 +79,9 @@ func main() {
 		&logModel.UserLog{},
 	)
 
+	// Seed default roles
+	infrastructure.SeedRoles(db)
+
 	// สร้าง Fiber app พร้อม ErrorHandler กลาง
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middleware.ErrorHandler,
