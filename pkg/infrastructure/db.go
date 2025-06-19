@@ -105,7 +105,7 @@ func NewPostgresDB(dbCfg DBConfig) (*gorm.DB, error) {
 	return db, nil
 }
 
-// Migrate ทำ AutoMigrate ให้กับโมเดลต่าง ๆ (เพิ่มตาราง RefreshToken ด้วย)
+// Migrate ทำ AutoMigrate ให้กับโมเดลต่าง ๆ (เช่น UserSession สำหรับ auth)
 func Migrate(db *gorm.DB, models ...interface{}) {
 	if err := db.AutoMigrate(models...); err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)

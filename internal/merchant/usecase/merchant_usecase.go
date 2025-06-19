@@ -10,8 +10,8 @@ import (
 )
 
 type MerchantUsecase interface {
-	GetMyMerchant(userID uint) (*domain.Merchant, error)
-	CreateMerchant(userID uint, merchantType string) (*domain.Merchant, error)
+	GetMyMerchant(userID uuid.UUID) (*domain.Merchant, error)
+	CreateMerchant(userID uuid.UUID, merchantType string) (*domain.Merchant, error)
 	CreateStore(merchantID uuid.UUID, name string, branch string, addr domain.StoreAddress) (*domain.Store, error)
 	ListStores(merchantID uuid.UUID) ([]domain.Store, error)
 	AddPersonInfo(merchantID uuid.UUID, firstName, lastName string, vatNo *string) (*domain.PersonMerchant, error)
@@ -48,11 +48,11 @@ func NewMerchantUsecase(repo repository.MerchantRepository) MerchantUsecase {
 	return &merchantUC{repo: repo}
 }
 
-func (u *merchantUC) GetMyMerchant(userID uint) (*domain.Merchant, error) {
+func (u *merchantUC) GetMyMerchant(userID uuid.UUID) (*domain.Merchant, error) {
 	return u.repo.GetMerchantByUser(userID)
 }
 
-func (u *merchantUC) CreateMerchant(userID uint, merchantType string) (*domain.Merchant, error) {
+func (u *merchantUC) CreateMerchant(userID uuid.UUID, merchantType string) (*domain.Merchant, error) {
 	if merchantType != "person" && merchantType != "company" {
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}

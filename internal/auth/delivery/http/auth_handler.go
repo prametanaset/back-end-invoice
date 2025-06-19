@@ -9,6 +9,7 @@ import (
 	"invoice_project/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type AuthHandler struct {
@@ -86,7 +87,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Me(c *fiber.Ctx) error {
-	userID, ok := c.Locals("user_id").(uint)
+	userID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
 		return apperror.New(fiber.StatusUnauthorized)
 	}

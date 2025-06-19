@@ -58,7 +58,7 @@ func main() {
 	// Migrate tables: User, RefreshToken, Invoice
 	infrastructure.Migrate(db,
 		&authModel.User{},
-		&authModel.RefreshToken{},
+		&authModel.UserSession{},
 		&invModel.Invoice{},
 		&merchModel.Merchant{},
 		&merchModel.Store{},

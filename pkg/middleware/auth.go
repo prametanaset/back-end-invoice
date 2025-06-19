@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"invoice_project/pkg/apperror"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,11 +13,11 @@ import (
 // GenerateJWTWithExpiry creates a JWT using a common set of OAuth-style claims
 // and embeds a token_type so that access and refresh tokens can be
 // differentiated.
-func GenerateJWTWithExpiry(secret string, userID uint, role string, expiry time.Duration, tokenType string) (string, error) {
+func GenerateJWTWithExpiry(secret string, userID uuid.UUID, role string, expiry time.Duration, tokenType string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
 		"iss":        "https://auth.example.com",
-		"sub":        strconv.FormatUint(uint64(userID), 10),
+		"sub":        userID.String(),
 		"aud":        "https://api.example.com",
 		"scope":      role,
 		"token_type": tokenType,
@@ -58,8 +57,8 @@ func JWTMiddleware(secret string) fiber.Handler {
 		}
 		// Map standard claims back to our context locals
 		if sub, ok := claims["sub"].(string); ok {
-			if id, err := strconv.Atoi(sub); err == nil {
-				c.Locals("user_id", uint(id))
+			if id, err := uuid.Parse(sub); err == nil {
+				c.Locals("user_id", id)
 			}
 		}
 		if scope, ok := claims["scope"].(string); ok {
