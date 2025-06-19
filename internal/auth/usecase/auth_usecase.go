@@ -63,9 +63,11 @@ func (u *authUC) Register(username, password string) error {
 	user := &domain.User{
 		Username:     username,
 		PasswordHash: password,
-		Role:         "user",
 	}
 	if err := u.repo.CreateUser(user); err != nil {
+		return err
+	}
+	if err := u.repo.AssignRoleToUser(user.ID, "user"); err != nil {
 		return err
 	}
 	return nil
@@ -94,13 +96,17 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
+	role, err := u.repo.GetPrimaryRole(user.ID)
+	if err != nil {
+		return "", "", err
+	}
 	// สร้าง access token
-	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.accessExpiry, "access")
+	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.accessExpiry, "access")
 	if err != nil {
 		return "", "", err
 	}
 	// สร้าง refresh token (random string หรือ JWT ก็ได้ ในที่นี้ใช้ JWT ง่าย ๆ)
-	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.refreshExpiry, "refresh")
+	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.refreshExpiry, "refresh")
 	if err != nil {
 		return "", "", err
 	}
@@ -128,10 +134,12 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 		user = &domain.User{
 			Username:     username,
 			PasswordHash: uuid.NewString(), // random password
-			Role:         "user",
 			IsVerified:   true,
 		}
 		if err := u.repo.CreateUser(user); err != nil {
+			return "", "", err
+		}
+		if err := u.repo.AssignRoleToUser(user.ID, "user"); err != nil {
 			return "", "", err
 		}
 		lm := &domain.UserLoginMethod{
@@ -143,11 +151,15 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 			return "", "", err
 		}
 	}
-	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.accessExpiry, "access")
+	role, err := u.repo.GetPrimaryRole(user.ID)
 	if err != nil {
 		return "", "", err
 	}
-	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.refreshExpiry, "refresh")
+	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.accessExpiry, "access")
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.refreshExpiry, "refresh")
 	if err != nil {
 		return "", "", err
 	}
@@ -181,11 +193,15 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 	}
 	// ถ้า valid ก็สร้าง access + refresh ใหม่
 	user := &existing.User
-	newAccess, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.accessExpiry, "access")
+	role, err := u.repo.GetPrimaryRole(user.ID)
 	if err != nil {
 		return "", "", err
 	}
-	newRefresh, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, user.Role, u.refreshExpiry, "refresh")
+	newAccess, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.accessExpiry, "access")
+	if err != nil {
+		return "", "", err
+	}
+	newRefresh, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.refreshExpiry, "refresh")
 	if err != nil {
 		return "", "", err
 	}

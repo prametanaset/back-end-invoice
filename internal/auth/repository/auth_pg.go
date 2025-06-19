@@ -20,6 +20,8 @@ type AuthRepository interface {
 	DeleteAllSessionsForUser(userID uuid.UUID) error
 	CreateLoginMethod(method *domain.UserLoginMethod) error
 	GetUserByLoginMethod(provider, providerUID string) (*domain.User, error)
+	AssignRoleToUser(userID uuid.UUID, roleName string) error
+	GetPrimaryRole(userID uuid.UUID) (string, error)
 }
 
 type authPG struct {
@@ -36,9 +38,6 @@ func (r *authPG) CreateUser(user *domain.User) error {
 		return err
 	}
 	user.PasswordHash = string(hashed)
-	if user.Role == "" {
-		user.Role = "user"
-	}
 	return r.db.Create(user).Error
 }
 
@@ -109,4 +108,29 @@ func (r *authPG) GetUserByLoginMethod(provider, providerUID string) (*domain.Use
 		return nil, err
 	}
 	return &lm.User, nil
+}
+
+func (r *authPG) AssignRoleToUser(userID uuid.UUID, roleName string) error {
+	var role domain.Role
+	if err := r.db.Where("name = ?", roleName).First(&role).Error; err != nil {
+		return err
+	}
+	ur := &domain.UserRole{UserID: userID, RoleID: role.ID}
+	return r.db.Create(ur).Error
+}
+
+func (r *authPG) GetPrimaryRole(userID uuid.UUID) (string, error) {
+	var role domain.Role
+	err := r.db.Model(&domain.Role{}).
+		Joins("JOIN user_roles ur ON ur.role_id = roles.id").
+		Where("ur.user_id = ?", userID).
+		Limit(1).
+		First(&role).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", nil
+		}
+		return "", err
+	}
+	return role.Name, nil
 }
