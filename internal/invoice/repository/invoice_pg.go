@@ -5,13 +5,14 @@ import (
 
 	"invoice_project/internal/invoice/domain"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type InvoiceRepository interface {
 	CreateInvoice(inv *domain.Invoice) error
-	GetInvoiceByID(id uint) (*domain.Invoice, error)
-	ListInvoicesByUser(userID uint) ([]domain.Invoice, error)
+	GetInvoiceByID(id uuid.UUID) (*domain.Invoice, error)
+	ListInvoicesByUser(userID uuid.UUID) ([]domain.Invoice, error)
 }
 
 type invoicePG struct {
@@ -26,7 +27,7 @@ func (r *invoicePG) CreateInvoice(inv *domain.Invoice) error {
 	return r.db.Create(inv).Error
 }
 
-func (r *invoicePG) GetInvoiceByID(id uint) (*domain.Invoice, error) {
+func (r *invoicePG) GetInvoiceByID(id uuid.UUID) (*domain.Invoice, error) {
 	var inv domain.Invoice
 	err := r.db.First(&inv, id).Error
 	if err != nil {
@@ -39,7 +40,7 @@ func (r *invoicePG) GetInvoiceByID(id uint) (*domain.Invoice, error) {
 	return &inv, nil
 }
 
-func (r *invoicePG) ListInvoicesByUser(userID uint) ([]domain.Invoice, error) {
+func (r *invoicePG) ListInvoicesByUser(userID uuid.UUID) ([]domain.Invoice, error) {
 	var invoices []domain.Invoice
 	err := r.db.Where("created_by_id = ?", userID).Order("created_at desc").Find(&invoices).Error
 	if err != nil {

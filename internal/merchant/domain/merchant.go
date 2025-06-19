@@ -8,7 +8,7 @@ import (
 
 type Merchant struct {
 	ID           uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	UserID       uint      `gorm:"not null" json:"user_id"`
+	UserID       uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
 	MerchantType string    `gorm:"type:varchar(20);not null" json:"merchant_type"`
 }
 

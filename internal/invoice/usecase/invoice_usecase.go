@@ -6,12 +6,13 @@ import (
 	"invoice_project/pkg/apperror"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type InvoiceUsecase interface {
-	CreateInvoice(customer string, amount float64, createdBy uint) (*domain.Invoice, error)
-	GetInvoice(id uint, userID uint) (*domain.Invoice, error)
-	ListInvoices(userID uint) ([]domain.Invoice, error)
+	CreateInvoice(customer string, amount float64, createdBy uuid.UUID) (*domain.Invoice, error)
+	GetInvoice(id uuid.UUID, userID uuid.UUID) (*domain.Invoice, error)
+	ListInvoices(userID uuid.UUID) ([]domain.Invoice, error)
 }
 
 type invoiceUC struct {
@@ -22,7 +23,7 @@ func NewInvoiceUsecase(repo repository.InvoiceRepository) InvoiceUsecase {
 	return &invoiceUC{repo: repo}
 }
 
-func (u *invoiceUC) CreateInvoice(customer string, amount float64, createdBy uint) (*domain.Invoice, error) {
+func (u *invoiceUC) CreateInvoice(customer string, amount float64, createdBy uuid.UUID) (*domain.Invoice, error) {
 	inv := &domain.Invoice{
 		Customer:    customer,
 		Amount:      amount,
@@ -35,7 +36,7 @@ func (u *invoiceUC) CreateInvoice(customer string, amount float64, createdBy uin
 	return inv, nil
 }
 
-func (u *invoiceUC) GetInvoice(id uint, userID uint) (*domain.Invoice, error) {
+func (u *invoiceUC) GetInvoice(id uuid.UUID, userID uuid.UUID) (*domain.Invoice, error) {
 	inv, err := u.repo.GetInvoiceByID(id)
 	if err != nil {
 		return nil, err
@@ -46,6 +47,6 @@ func (u *invoiceUC) GetInvoice(id uint, userID uint) (*domain.Invoice, error) {
 	return inv, nil
 }
 
-func (u *invoiceUC) ListInvoices(userID uint) ([]domain.Invoice, error) {
+func (u *invoiceUC) ListInvoices(userID uuid.UUID) ([]domain.Invoice, error) {
 	return u.repo.ListInvoicesByUser(userID)
 }

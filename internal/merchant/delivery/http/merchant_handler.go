@@ -22,7 +22,7 @@ func (h *MerchantHandler) CreateMerchant(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(uuid.UUID)
 	m, err := h.uc.CreateMerchant(userID, body.MerchantType)
 	if err != nil {
 		return err
