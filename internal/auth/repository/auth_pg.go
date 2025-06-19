@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -73,7 +74,7 @@ func (r *authPG) GetSessionByToken(token string) (*domain.UserSession, error) {
 	var sess domain.UserSession
 	err := r.db.
 		Preload("User").
-		Where("refresh_token = ?", token).
+		Where("refresh_token = ? AND revoked_at IS NULL", token).
 		First(&sess).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,7 +88,7 @@ func (r *authPG) GetSessionByToken(token string) (*domain.UserSession, error) {
 func (r *authPG) RevokeSession(token string) error {
 	return r.db.Model(&domain.UserSession{}).
 		Where("refresh_token = ?", token).
-		Update("revoked", true).Error
+		Update("revoked_at", time.Now()).Error
 }
 
 func (r *authPG) DeleteAllSessionsForUser(userID uuid.UUID) error {

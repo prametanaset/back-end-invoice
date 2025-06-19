@@ -183,6 +183,9 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 	if existing == nil {
 		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
+	if existing.RevokedAt != nil {
+		return "", "", apperror.New(fiber.StatusUnauthorized)
+	}
 	// เช็คว่า expired หรือยัง
 	if existing.ExpiresAt.Before(time.Now()) {
 		// ถ้า expired ให้ลบทิ้งและคืน error
