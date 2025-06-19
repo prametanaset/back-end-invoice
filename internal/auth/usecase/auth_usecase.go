@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,7 +19,7 @@ type AuthUsecase interface {
 	Login(username, password string) (accessToken string, refreshToken string, err error)
 	RefreshAccessToken(oldRefreshToken string) (newAccessToken string, newRefreshToken string, err error)
 	Logout(refreshToken string) error
-	GetProfile(userID uint) (*domain.User, error)
+	GetProfile(userID uuid.UUID) (*domain.User, error)
 }
 
 type authUC struct {
@@ -59,9 +60,9 @@ func (u *authUC) Register(username, password string) error {
 		return apperror.New(fiber.StatusBadRequest)
 	}
 	user := &domain.User{
-		Username: username,
-		Password: password,
-		Role:     "user",
+		Username:     username,
+		PasswordHash: password,
+		Role:         "user",
 	}
 	if err := u.repo.CreateUser(user); err != nil {
 		return err
@@ -89,7 +90,7 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// เปรียบเทียบรหัสผ่าน
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// สร้าง access token
@@ -103,12 +104,12 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 		return "", "", err
 	}
 	// บันทึก refresh token ลง DB
-	rt := &domain.RefreshToken{
-		Token:     refreshToken,
-		UserID:    user.ID,
-		ExpiredAt: time.Now().Add(u.refreshExpiry),
+	sess := &domain.UserSession{
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		ExpiresAt:    time.Now().Add(u.refreshExpiry),
 	}
-	if err := u.repo.SaveRefreshToken(rt); err != nil {
+	if err := u.repo.CreateSession(sess); err != nil {
 		return "", "", err
 	}
 	return accessToken, refreshToken, nil
@@ -116,7 +117,7 @@ func (u *authUC) Login(username, password string) (string, string, error) {
 
 func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, error) {
 	// หา record จาก DB
-	existing, err := u.repo.GetRefreshToken(oldRefreshToken)
+	existing, err := u.repo.GetSessionByToken(oldRefreshToken)
 	if err != nil {
 		return "", "", err
 	}
@@ -124,9 +125,9 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 		return "", "", apperror.New(fiber.StatusUnauthorized)
 	}
 	// เช็คว่า expired หรือยัง
-	if existing.ExpiredAt.Before(time.Now()) {
+        if existing.ExpiresAt.Before(time.Now()) {
 		// ถ้า expired ให้ลบทิ้งและคืน error
-		if err := u.repo.RevokeRefreshToken(oldRefreshToken); err != nil {
+		if err := u.repo.RevokeSession(oldRefreshToken); err != nil {
 			return "", "", err
 		}
 		return "", "", apperror.New(fiber.StatusUnauthorized)
@@ -142,26 +143,26 @@ func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, err
 		return "", "", err
 	}
 	// อัปเดตใน DB: ลบ old แล้วเพิ่ม new
-	if err := u.repo.RevokeRefreshToken(oldRefreshToken); err != nil {
+	if err := u.repo.RevokeSession(oldRefreshToken); err != nil {
 		return "", "", err
 	}
-	newRT := &domain.RefreshToken{
-		Token:     newRefresh,
-		UserID:    user.ID,
-		ExpiredAt: time.Now().Add(u.refreshExpiry),
+	newSess := &domain.UserSession{
+		UserID:       user.ID,
+		RefreshToken: newRefresh,
+		ExpiresAt:    time.Now().Add(u.refreshExpiry),
 	}
-	if err := u.repo.SaveRefreshToken(newRT); err != nil {
+	if err := u.repo.CreateSession(newSess); err != nil {
 		return "", "", err
 	}
 	return newAccess, newRefresh, nil
 }
 
 func (u *authUC) Logout(refreshToken string) error {
-	// ลบ refresh token ออกจาก DB เลย
-	return u.repo.RevokeRefreshToken(refreshToken)
+	// Mark session revoked
+	return u.repo.RevokeSession(refreshToken)
 }
 
-func (u *authUC) GetProfile(userID uint) (*domain.User, error) {
+func (u *authUC) GetProfile(userID uuid.UUID) (*domain.User, error) {
 	user, err := u.repo.GetUserByID(userID)
 	if err != nil {
 		return nil, err

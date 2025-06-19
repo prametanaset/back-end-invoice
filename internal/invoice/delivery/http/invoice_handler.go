@@ -1,13 +1,12 @@
 package http
 
 import (
-	"strconv"
-
 	"invoice_project/internal/invoice/usecase"
 	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type InvoiceHandler struct {
@@ -25,7 +24,7 @@ func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(uuid.UUID)
 	inv, err := h.invUC.CreateInvoice(body.Customer, body.Amount, userID)
 	if err != nil {
 		return err
@@ -35,12 +34,12 @@ func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 
 func (h *InvoiceHandler) GetByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
+	uuidID, err := uuid.Parse(idParam)
 	if err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	userID := c.Locals("user_id").(uint)
-	inv, err := h.invUC.GetInvoice(uint(id), userID)
+	userID := c.Locals("user_id").(uuid.UUID)
+	inv, err := h.invUC.GetInvoice(uuidID, userID)
 	if err != nil {
 		return err
 	}
@@ -48,7 +47,7 @@ func (h *InvoiceHandler) GetByID(c *fiber.Ctx) error {
 }
 
 func (h *InvoiceHandler) List(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(uuid.UUID)
 	invoices, err := h.invUC.ListInvoices(userID)
 	if err != nil {
 		return err

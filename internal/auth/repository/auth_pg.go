@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
@@ -12,11 +13,11 @@ import (
 type AuthRepository interface {
 	CreateUser(user *domain.User) error
 	GetUserByUsername(username string) (*domain.User, error)
-	GetUserByID(id uint) (*domain.User, error)
-	SaveRefreshToken(token *domain.RefreshToken) error
-	GetRefreshToken(rawToken string) (*domain.RefreshToken, error)
-	RevokeRefreshToken(rawToken string) error
-	DeleteAllRefreshTokensForUser(userID uint) error
+	GetUserByID(id uuid.UUID) (*domain.User, error)
+	CreateSession(session *domain.UserSession) error
+	GetSessionByToken(token string) (*domain.UserSession, error)
+	RevokeSession(token string) error
+	DeleteAllSessionsForUser(userID uuid.UUID) error
 }
 
 type authPG struct {
@@ -28,11 +29,11 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 }
 
 func (r *authPG) CreateUser(user *domain.User) error {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.Password = string(hashed)
+	user.PasswordHash = string(hashed)
 	if user.Role == "" {
 		user.Role = "user"
 	}
@@ -51,7 +52,7 @@ func (r *authPG) GetUserByUsername(username string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *authPG) GetUserByID(id uint) (*domain.User, error) {
+func (r *authPG) GetUserByID(id uuid.UUID) (*domain.User, error) {
 	var user domain.User
 	err := r.db.First(&user, id).Error
 	if err != nil {
@@ -63,29 +64,31 @@ func (r *authPG) GetUserByID(id uint) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *authPG) SaveRefreshToken(token *domain.RefreshToken) error {
-	return r.db.Create(token).Error
+func (r *authPG) CreateSession(s *domain.UserSession) error {
+	return r.db.Create(s).Error
 }
 
-func (r *authPG) GetRefreshToken(rawToken string) (*domain.RefreshToken, error) {
-	var rt domain.RefreshToken
+func (r *authPG) GetSessionByToken(token string) (*domain.UserSession, error) {
+	var sess domain.UserSession
 	err := r.db.
 		Preload("User").
-		Where("token = ?", rawToken).
-		First(&rt).Error
+		Where("refresh_token = ?", token).
+		First(&sess).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return &rt, nil
+	return &sess, nil
 }
 
-func (r *authPG) RevokeRefreshToken(rawToken string) error {
-	return r.db.Where("token = ?", rawToken).Delete(&domain.RefreshToken{}).Error
+func (r *authPG) RevokeSession(token string) error {
+	return r.db.Model(&domain.UserSession{}).
+		Where("refresh_token = ?", token).
+		Update("revoked", true).Error
 }
 
-func (r *authPG) DeleteAllRefreshTokensForUser(userID uint) error {
-	return r.db.Where("user_id = ?", userID).Delete(&domain.RefreshToken{}).Error
+func (r *authPG) DeleteAllSessionsForUser(userID uuid.UUID) error {
+	return r.db.Where("user_id = ?", userID).Delete(&domain.UserSession{}).Error
 }
