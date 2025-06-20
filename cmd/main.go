@@ -87,10 +87,11 @@ func main() {
 		ErrorHandler: middleware.ErrorHandler,
 	})
 
-	// ✅ เปิดใช้งาน CORS สำหรับทุก origin (เพื่อเริ่มต้น)
+	// ✅ เปิดใช้งาน CORS และอนุญาตให้ส่งคุกกี้ข้ามโดเมนได้
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowOrigins:     "*",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
 	}))
 
 	// Logger middleware
