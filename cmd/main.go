@@ -88,11 +88,15 @@ func main() {
 	})
 
 	// ✅ เปิดใช้งาน CORS และอนุญาตให้ส่งคุกกี้ข้ามโดเมนได้
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
+	corsCfg := cors.Config{
+		AllowOrigins:     cfg.Server.AllowOrigins,
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
-	}))
+	}
+	if corsCfg.AllowOrigins == "" {
+		corsCfg.AllowOrigins = "http://localhost:3000"
+	}
+	app.Use(cors.New(corsCfg))
 
 	// Logger middleware
 	app.Use(middleware.Logger(db))
