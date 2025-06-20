@@ -61,6 +61,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		Secure:   true,
 		Path:     "/",
 		Expires:  exp,
+		SameSite: fiber.CookieSameSiteLaxMode,
 	})
 	// Return only access token
 	return c.JSON(fiber.Map{
@@ -97,6 +98,7 @@ func (h *AuthHandler) OAuthLogin(c *fiber.Ctx) error {
 		Secure:   true,
 		Path:     "/",
 		Expires:  exp,
+		SameSite: fiber.CookieSameSiteLaxMode,
 	})
 	return c.JSON(fiber.Map{
 		"access_token": accessToken,
@@ -125,6 +127,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		Secure:   true,
 		Path:     "/",
 		Expires:  exp,
+		SameSite: fiber.CookieSameSiteLaxMode,
 	})
 	return c.JSON(fiber.Map{
 		"access_token": newAccess,
@@ -149,6 +152,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		Secure:   true,
 		Path:     "/",
 		Expires:  time.Now().Add(-time.Hour),
+		SameSite: fiber.CookieSameSiteLaxMode,
 	})
 	return c.JSON(fiber.Map{"message": "logged out"})
 }
