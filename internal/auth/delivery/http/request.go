@@ -23,3 +23,8 @@ type OAuthLoginRequest struct {
 	ProviderUID string `json:"provider_uid"`
 	Username    string `json:"username"`
 }
+
+// LogoutRequest represents the expected payload for logging out.
+type LogoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}

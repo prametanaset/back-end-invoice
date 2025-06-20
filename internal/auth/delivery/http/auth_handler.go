@@ -8,8 +8,6 @@ import (
 	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
 
-	"github.com/golang-jwt/jwt/v4"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -48,25 +46,10 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	// Store refresh token in secure HttpOnly cookie
-	var claims jwt.RegisteredClaims
-	exp := time.Now().Add(24 * time.Hour)
-	if _, _, err := new(jwt.Parser).ParseUnverified(refreshToken, &claims); err == nil && claims.ExpiresAt != nil {
-		exp = claims.ExpiresAt.Time
-	}
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-		Expires:  exp,
-		SameSite: fiber.CookieSameSiteLaxMode,
-	})
-	// Return only access token
 	return c.JSON(fiber.Map{
-		"access_token": accessToken,
-		"expires_at":   time.Now().Add(15 * time.Minute),
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"expires_at":    time.Now().Add(15 * time.Minute),
 	})
 }
 
@@ -86,23 +69,10 @@ func (h *AuthHandler) OAuthLogin(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	var claims jwt.RegisteredClaims
-	exp := time.Now().Add(24 * time.Hour)
-	if _, _, err := new(jwt.Parser).ParseUnverified(refreshToken, &claims); err == nil && claims.ExpiresAt != nil {
-		exp = claims.ExpiresAt.Time
-	}
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-		Expires:  exp,
-		SameSite: fiber.CookieSameSiteLaxMode,
-	})
 	return c.JSON(fiber.Map{
-		"access_token": accessToken,
-		"expires_at":   time.Now().Add(15 * time.Minute),
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"expires_at":    time.Now().Add(15 * time.Minute),
 	})
 }
 
@@ -115,45 +85,25 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	var claims jwt.RegisteredClaims
-	exp := time.Now().Add(24 * time.Hour)
-	if _, _, err := new(jwt.Parser).ParseUnverified(newRefresh, &claims); err == nil && claims.ExpiresAt != nil {
-		exp = claims.ExpiresAt.Time
-	}
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    newRefresh,
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-		Expires:  exp,
-		SameSite: fiber.CookieSameSiteLaxMode,
-	})
 	return c.JSON(fiber.Map{
-		"access_token": newAccess,
-		"expires_at":   time.Now().Add(15 * time.Minute),
+		"access_token":  newAccess,
+		"refresh_token": newRefresh,
+		"expires_at":    time.Now().Add(15 * time.Minute),
 	})
 }
 
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	refreshToken := c.Cookies("refresh_token")
-	if refreshToken == "" {
+	var body LogoutRequest
+	if err := c.BodyParser(&body); err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if body.RefreshToken == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
 
-	if err := h.authUC.Logout(refreshToken); err != nil {
+	if err := h.authUC.Logout(body.RefreshToken); err != nil {
 		return err
 	}
-	// Clear cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    "",
-		HTTPOnly: true,
-		Secure:   true,
-		Path:     "/",
-		Expires:  time.Now().Add(-time.Hour),
-		SameSite: fiber.CookieSameSiteLaxMode,
-	})
 	return c.JSON(fiber.Map{"message": "logged out"})
 }
 
