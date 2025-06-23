@@ -28,3 +28,8 @@ type OAuthLoginRequest struct {
 type LogoutRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
+
+// CheckEmailRequest represents the payload to verify if an email is already registered.
+type CheckEmailRequest struct {
+	Username string `json:"username"`
+}

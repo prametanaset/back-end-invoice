@@ -107,6 +107,21 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "logged out"})
 }
 
+func (h *AuthHandler) CheckEmail(c *fiber.Ctx) error {
+	var body CheckEmailRequest
+	if err := c.BodyParser(&body); err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if body.Username == "" {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	taken, err := h.authUC.IsUsernameTaken(body.Username)
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"taken": taken})
+}
+
 func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
@@ -153,6 +168,7 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth := app.Group("/auth")
 	apiAuth.Post("/register", h.Register)
+	apiAuth.Post("/check-email", h.CheckEmail)
 	apiAuth.Post("/login", h.Login)
 	apiAuth.Post("/oauth-login", h.OAuthLogin)
 	apiAuth.Post("/refresh", h.Refresh)
