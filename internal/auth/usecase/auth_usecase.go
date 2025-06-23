@@ -21,6 +21,7 @@ type AuthUsecase interface {
 	RefreshAccessToken(oldRefreshToken string) (newAccessToken string, newRefreshToken string, err error)
 	Logout(refreshToken string) error
 	GetProfile(userID uuid.UUID) (*domain.User, error)
+	IsUsernameTaken(username string) (bool, error)
 }
 
 type authUC struct {
@@ -237,4 +238,18 @@ func (u *authUC) GetProfile(userID uuid.UUID) (*domain.User, error) {
 		return nil, apperror.New(fiber.StatusNotFound)
 	}
 	return user, nil
+}
+
+func (u *authUC) IsUsernameTaken(username string) (bool, error) {
+	input := struct {
+		Username string `validate:"required,min=3"`
+	}{Username: username}
+	if err := u.validate.Struct(input); err != nil {
+		return false, apperror.New(fiber.StatusBadRequest)
+	}
+	user, err := u.repo.GetUserByUsername(username)
+	if err != nil {
+		return false, err
+	}
+	return user != nil, nil
 }
