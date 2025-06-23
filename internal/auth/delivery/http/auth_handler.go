@@ -122,6 +122,18 @@ func (h *AuthHandler) CheckEmail(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"taken": taken})
 }
 
+func (h *AuthHandler) MerchantStatus(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		return apperror.New(fiber.StatusUnauthorized)
+	}
+	has, err := h.merchantUC.HasStore(userID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"merchant_store_set": has})
+}
+
 func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
@@ -174,4 +186,5 @@ func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth.Post("/refresh", h.Refresh)
 	apiAuth.Post("/logout", h.Logout)
 	app.Get("/me", middleware.RequireRoles("user", "admin"), h.Me)
+	app.Get("/me/merchant-status", middleware.RequireRoles("user", "admin"), h.MerchantStatus)
 }

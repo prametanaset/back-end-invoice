@@ -20,6 +20,7 @@ type MerchantUsecase interface {
 	ListContacts(merchantID uuid.UUID) ([]domain.MerchantContact, error)
 	GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, error)
 	GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error)
+	HasStore(userID uuid.UUID) (bool, error)
 }
 
 // StoreAddressInput holds address fields when creating a store.
@@ -151,4 +152,19 @@ func (u *merchantUC) GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, er
 
 func (u *merchantUC) GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error) {
 	return u.repo.GetCompany(merchantID)
+}
+
+func (u *merchantUC) HasStore(userID uuid.UUID) (bool, error) {
+	m, err := u.repo.GetMerchantByUser(userID)
+	if err != nil {
+		return false, err
+	}
+	if m == nil {
+		return false, nil
+	}
+	stores, err := u.repo.ListStores(m.ID)
+	if err != nil {
+		return false, err
+	}
+	return len(stores) > 0, nil
 }
