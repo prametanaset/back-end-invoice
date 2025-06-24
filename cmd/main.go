@@ -81,16 +81,9 @@ func main() {
 		&customerModel.CustomerContact{},
 		&productModel.Product{},
 		&productModel.ProductImage{},
-<<<<<<< HEAD
 		&locationModel.Province{},
 		&locationModel.District{},
 		&locationModel.SubDistrict{},
-=======
-		&locationModel.Geography{},
-		&locationModel.Province{},
-		&locationModel.Amphure{},
-		&locationModel.Tambon{},
->>>>>>> fe689551f1395d734858e14c96b935403361a507
 		&logModel.UserLog{},
 	)
 
@@ -155,11 +148,7 @@ func main() {
 
 	// Location module
 	locationRepository := locationRepo.NewLocationRepository(db)
-<<<<<<< HEAD
 	locationUsecase := locationUC.NewLocationUseCase(locationRepository)
-=======
-	locationUsecase := locationUC.NewLocationUsecase(locationRepository)
->>>>>>> fe689551f1395d734858e14c96b935403361a507
 	locationHandler := locationHTTP.NewLocationHandler(locationUsecase)
 	locationHandler.RegisterRoutes(app)
 
