@@ -9,6 +9,7 @@ import (
 type LocationUsecase interface {
 	GetProvinceAll(ctx context.Context) ([]domain.Province, error)
 	GetProvinceByID(ctx context.Context, id uint) (*domain.Province, error)
+	GetProvinceByGeoID(ctx context.Context, geoID uint) ([]domain.Province, error)
 	// District
 	GetDistricts(ctx context.Context, id uint) ([]domain.District, error)
 	GetDistrictById(ctx context.Context, id uint) (*domain.District, error)
@@ -32,6 +33,11 @@ func (u *locationUsecase) GetProvinceAll(ctx context.Context) ([]domain.Province
 func (u *locationUsecase) GetProvinceByID(ctx context.Context, id uint) (*domain.Province, error) {
 	return u.repo.GetProvinceByID(ctx, id)
 }
+
+func (u *locationUsecase) GetProvinceByGeoID(ctx context.Context, geoID uint) ([]domain.Province, error) {
+	return u.repo.GetProvinceByGeoID(ctx, geoID)
+}
+
 // District
 
 func (u *locationUsecase) GetDistricts(ctx context.Context, id uint) ([]domain.District, error) {

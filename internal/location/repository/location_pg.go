@@ -10,6 +10,7 @@ import (
 type LocationRepository interface {
 	GetProvinceAll(ctx context.Context) ([]domain.Province, error)
 	GetProvinceByID(ctx context.Context, id uint) (*domain.Province, error)
+	GetProvinceByGeoID(ctx context.Context, geoID uint) ([]domain.Province, error)
 	GetDistrictById(ctx context.Context, id uint) (*domain.District, error)
 	GetDistricts(ctx context.Context, id uint) ([]domain.District, error)
 	GetSubDistrictsById(ctx context.Context, id uint) (*domain.SubDistrict, error)
@@ -20,11 +21,9 @@ type locationRepository struct {
 	db *gorm.DB
 }
 
-
 func NewLocationRepository(db *gorm.DB) LocationRepository {
 	return &locationRepository{db}
 }
-
 
 // province
 func (r *locationRepository) GetProvinceAll(ctx context.Context) ([]domain.Province, error) {
@@ -43,6 +42,13 @@ func (r *locationRepository) GetProvinceByID(ctx context.Context, id uint) (*dom
 	return &province, nil
 }
 
+func (r *locationRepository) GetProvinceByGeoID(ctx context.Context, geoID uint) ([]domain.Province, error) {
+	var provinces []domain.Province
+	if err := r.db.WithContext(ctx).Where("geography_id = ?", geoID).Find(&provinces).Error; err != nil {
+		return nil, err
+	}
+	return provinces, nil
+}
 
 // district
 func (r *locationRepository) GetDistrictById(ctx context.Context, id uint) (*domain.District, error) {
@@ -61,7 +67,7 @@ func (r *locationRepository) GetDistricts(ctx context.Context, id uint) ([]domai
 	return districts, nil
 }
 
-//  sub-district
+// sub-district
 func (r *locationRepository) GetSubDistricts(ctx context.Context, id uint) ([]domain.SubDistrict, error) {
 	var sdistricts []domain.SubDistrict
 	if err := r.db.WithContext(ctx).Where("district_id = ?", id).Find(&sdistricts).Error; err != nil {

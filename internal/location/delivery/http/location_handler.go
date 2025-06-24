@@ -12,12 +12,10 @@ type LocationHandler struct {
 	usecase usecase.LocationUsecase
 }
 
-
 type ReturnType struct {
 	Value int
 	Label string
 }
-
 
 func NewLocationHandler(u usecase.LocationUsecase) *LocationHandler {
 	return &LocationHandler{u}
@@ -43,7 +41,6 @@ func (h *LocationHandler) GetProvinceList(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-
 func (h *LocationHandler) GetProvinceByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 	id, err := strconv.Atoi(idParam)
@@ -64,6 +61,33 @@ func (h *LocationHandler) GetProvinceByID(c *fiber.Ctx) error {
 		Value: int(province.ID),
 		Label: province.NameTh,
 	})
+}
+
+func (h *LocationHandler) GetProvincesByGeoID(c *fiber.Ctx) error {
+	idParam := c.Params("geo_id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "รหัสภูมิภาคไม่ถูกต้อง",
+		})
+	}
+
+	provinces, err := h.usecase.GetProvinceByGeoID(c.Context(), uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "ไม่สามารถดึงข้อมูลจังหวัดได้",
+		})
+	}
+
+	var result []ReturnType
+	for _, p := range provinces {
+		result = append(result, ReturnType{
+			Value: int(p.ID),
+			Label: p.NameTh,
+		})
+	}
+
+	return c.JSON(result)
 }
 
 func (h *LocationHandler) GetDistrictById(c *fiber.Ctx) error {
@@ -87,7 +111,6 @@ func (h *LocationHandler) GetDistrictById(c *fiber.Ctx) error {
 		Label: district.NameTh,
 	})
 }
-
 
 func (h *LocationHandler) GetDistricts(c *fiber.Ctx) error {
 	idParam := c.Params("province_id")
@@ -136,7 +159,6 @@ func (h *LocationHandler) GetSubDistrictById(c *fiber.Ctx) error {
 	return c.JSON(sdistrict)
 }
 
-
 func (h *LocationHandler) GetSubDistricts(c *fiber.Ctx) error {
 	idParam := c.Params("district_id")
 	id, err := strconv.Atoi(idParam)
@@ -165,11 +187,11 @@ func (h *LocationHandler) GetSubDistricts(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-
 func (h *LocationHandler) RegisterRoutes(app *fiber.App) {
 	api := app.Group("/locations", middleware.RequireRoles("user", "admin"))
 	api.Get("/province/", h.GetProvinceList)
 	api.Get("/province/:id", h.GetProvinceByID)
+	api.Get("/geography/:geo_id/provinces", h.GetProvincesByGeoID)
 	api.Get("/district/:id", h.GetDistrictById)
 	api.Get("/province/:province_id/districts", h.GetDistricts)
 	api.Get("/subdistrict/:id", h.GetSubDistrictById)
