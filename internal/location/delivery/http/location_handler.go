@@ -1,178 +1,68 @@
 package http
 
 import (
-	"invoice_project/internal/location/usecase"
-	"invoice_project/pkg/middleware"
 	"strconv"
+
+	"invoice_project/internal/location/usecase"
+	"invoice_project/pkg/apperror"
+	"invoice_project/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
 
+// LocationHandler handles HTTP requests for thai location data
+
 type LocationHandler struct {
-	usecase usecase.LocationUsecase
+	uc usecase.LocationUsecase
 }
 
-
-type ReturnType struct {
-	Value int
-	Label string
+func NewLocationHandler(uc usecase.LocationUsecase) *LocationHandler {
+	return &LocationHandler{uc: uc}
 }
 
-
-func NewLocationHandler(u usecase.LocationUsecase) *LocationHandler {
-	return &LocationHandler{u}
-}
-
-func (h *LocationHandler) GetProvinceList(c *fiber.Ctx) error {
-	provinces, err := h.usecase.GetProvinceAll(c.Context())
+func (h *LocationHandler) listGeographies(c *fiber.Ctx) error {
+	geos, err := h.uc.ListGeographies(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "ไม่สามารถดึงข้อมูลจังหวัดได้",
-		})
+		return apperror.New(fiber.StatusInternalServerError)
 	}
-
-	// แปลงเป็น ReturnType
-	var result []ReturnType
-	for _, p := range provinces {
-		result = append(result, ReturnType{
-			Value: int(p.ID),
-			Label: p.NameTh,
-		})
-	}
-
-	return c.JSON(result)
+	return c.JSON(geos)
 }
 
-
-func (h *LocationHandler) GetProvinceByID(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil || id <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ID ไม่ถูกต้อง",
-		})
-	}
-
-	province, err := h.usecase.GetProvinceByID(c.Context(), uint(id))
+func (h *LocationHandler) listProvinces(c *fiber.Ctx) error {
+	gidStr := c.Query("geo_id")
+	gid, _ := strconv.Atoi(gidStr)
+	provinces, err := h.uc.ListProvinces(c.Context(), gid)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "ไม่พบจังหวัดที่ต้องการ",
-		})
+		return apperror.New(fiber.StatusInternalServerError)
 	}
-
-	return c.JSON(ReturnType{
-		Value: int(province.ID),
-		Label: province.NameTh,
-	})
+	return c.JSON(provinces)
 }
 
-func (h *LocationHandler) GetDistrictById(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil || id <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ID ไม่ถูกต้อง",
-		})
-	}
-
-	district, err := h.usecase.GetDistrictById(c.Context(), uint(id))
+func (h *LocationHandler) listAmphures(c *fiber.Ctx) error {
+	pidStr := c.Query("province_id")
+	pid, _ := strconv.Atoi(pidStr)
+	amphures, err := h.uc.ListAmphures(c.Context(), pid)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "ไม่พบเขตที่ต้องการ",
-		})
+		return apperror.New(fiber.StatusInternalServerError)
 	}
-
-	return c.JSON(ReturnType{
-		Value: int(district.ID),
-		Label: district.NameTh,
-	})
+	return c.JSON(amphures)
 }
 
-
-func (h *LocationHandler) GetDistricts(c *fiber.Ctx) error {
-	idParam := c.Params("province_id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil || id <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "รหัสจังหวัดไม่ถูกต้อง",
-		})
-	}
-
-	districts, err := h.usecase.GetDistricts(c.Context(), uint(id))
+func (h *LocationHandler) listTambons(c *fiber.Ctx) error {
+	aidStr := c.Query("amphure_id")
+	aid, _ := strconv.Atoi(aidStr)
+	tambons, err := h.uc.ListTambons(c.Context(), aid)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "ไม่สามารถดึงข้อมูลอำเภอได้",
-		})
+		return apperror.New(fiber.StatusInternalServerError)
 	}
-
-	// แปลงเป็น ReturnType
-	var result []ReturnType
-	for _, d := range districts {
-		result = append(result, ReturnType{
-			Value: int(d.ID),
-			Label: d.NameTh,
-		})
-	}
-
-	return c.JSON(result)
+	return c.JSON(tambons)
 }
 
-func (h *LocationHandler) GetSubDistrictById(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil || id <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ID ไม่ถูกต้อง",
-		})
-	}
-
-	sdistrict, err := h.usecase.GetSubDistrictsById(c.Context(), uint(id))
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "ไม่พบเขตที่ต้องการ",
-		})
-	}
-
-	return c.JSON(sdistrict)
-}
-
-
-func (h *LocationHandler) GetSubDistricts(c *fiber.Ctx) error {
-	idParam := c.Params("district_id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil || id <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "รหัสอำเภอไม่ถูกต้อง",
-		})
-	}
-
-	districts, err := h.usecase.GetSubDistricts(c.Context(), uint(id))
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "ไม่สามารถดึงข้อมูลตำบลได้",
-		})
-	}
-
-	// แปลงเป็น ReturnType
-	var result []ReturnType
-	for _, d := range districts {
-		result = append(result, ReturnType{
-			Value: int(d.ID),
-			Label: d.NameTh,
-		})
-	}
-
-	return c.JSON(result)
-}
-
-
+// RegisterRoutes registers location endpoints
 func (h *LocationHandler) RegisterRoutes(app *fiber.App) {
 	api := app.Group("/locations", middleware.RequireRoles("user", "admin"))
-	api.Get("/province/", h.GetProvinceList)
-	api.Get("/province/:id", h.GetProvinceByID)
-	api.Get("/district/:id", h.GetDistrictById)
-	api.Get("/province/:province_id/districts", h.GetDistricts)
-	api.Get("/subdistrict/:id", h.GetSubDistrictById)
-	api.Get("/districts/:district_id/subdistricts", h.GetSubDistricts)
-
+	api.Get("/geographies", h.listGeographies)
+	api.Get("/provinces", h.listProvinces)
+	api.Get("/amphures", h.listAmphures)
+	api.Get("/tambons", h.listTambons)
 }

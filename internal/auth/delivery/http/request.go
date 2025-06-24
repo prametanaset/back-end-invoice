@@ -16,3 +16,20 @@ type LoginRequest struct {
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
+
+// OAuthLoginRequest represents OAuth login payload.
+type OAuthLoginRequest struct {
+	Provider    string `json:"provider"`
+	ProviderUID string `json:"provider_uid"`
+	Username    string `json:"username"`
+}
+
+// LogoutRequest represents the expected payload for logging out.
+type LogoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// CheckEmailRequest represents the payload to verify if an email is already registered.
+type CheckEmailRequest struct {
+	Username string `json:"username"`
+}

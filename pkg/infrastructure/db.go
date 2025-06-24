@@ -24,7 +24,8 @@ type DBConfig struct {
 }
 
 type ServerConfig struct {
-	Port string `yaml:"port"`
+	Port         string `yaml:"port"`
+	AllowOrigins string `yaml:"allow_origins"`
 }
 
 // AppConfig เก็บทั้งส่วน Database และ Auth
@@ -82,6 +83,12 @@ func LoadConfig(path string) (*AppConfig, error) {
 	}
 	if env := os.Getenv("JWT_EXPIRY_REFRESH"); env != "" {
 		fmt.Sscanf(env, "%d", &cfg.Auth.JWTExpiryRefreshHours)
+	}
+	if env := os.Getenv("SERVER_PORT"); env != "" {
+		cfg.Server.Port = env
+	}
+	if env := os.Getenv("ALLOW_ORIGINS"); env != "" {
+		cfg.Server.AllowOrigins = env
 	}
 	// If JWTSecret points to a file, read its contents
 	if cfg.Auth.JWTSecret != "" {

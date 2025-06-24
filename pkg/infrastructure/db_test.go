@@ -30,7 +30,8 @@ auth:
   jwt_expiry_access_minutes: 15
   jwt_expiry_refresh_hours: 24
 server:
-  port: ":8080"`
+  port: ":8080"
+  allow_origins: "http://example.com"`
 	file := writeTempConfig(t, yaml)
 
 	cfg, err := LoadConfig(file)
@@ -48,6 +49,9 @@ server:
 	if cfg.Server.Port != ":8080" {
 		t.Errorf("server port not loaded correctly: %s", cfg.Server.Port)
 	}
+	if cfg.Server.AllowOrigins != "http://example.com" {
+		t.Errorf("allow origins not loaded correctly: %s", cfg.Server.AllowOrigins)
+	}
 }
 
 func TestLoadConfig_EnvOverride(t *testing.T) {
@@ -61,7 +65,10 @@ func TestLoadConfig_EnvOverride(t *testing.T) {
 auth:
   jwt_secret: "secret"
   jwt_expiry_access_minutes: 15
-  jwt_expiry_refresh_hours: 24`
+  jwt_expiry_refresh_hours: 24
+server:
+  port: ":8080"
+  allow_origins: "http://default.com"`
 	file := writeTempConfig(t, yaml)
 
 	t.Setenv("DB_HOST", "envhost")
@@ -73,6 +80,8 @@ auth:
 	t.Setenv("JWT_SECRET", "envsecret")
 	t.Setenv("JWT_EXPIRY_ACCESS", "30")
 	t.Setenv("JWT_EXPIRY_REFRESH", "48")
+	t.Setenv("SERVER_PORT", ":9999")
+	t.Setenv("ALLOW_ORIGINS", "http://env.example.com")
 
 	cfg, err := LoadConfig(file)
 	if err != nil {
@@ -85,6 +94,12 @@ auth:
 	}
 	if cfg.Auth.JWTSecret != "envsecret" || cfg.Auth.JWTExpiryAccessMin != 30 || cfg.Auth.JWTExpiryRefreshHours != 48 {
 		t.Errorf("auth env override failed: %+v", cfg.Auth)
+	}
+	if cfg.Server.Port != ":9999" {
+		t.Errorf("server port env override failed: %s", cfg.Server.Port)
+	}
+	if cfg.Server.AllowOrigins != "http://env.example.com" {
+		t.Errorf("allow origins env override failed: %s", cfg.Server.AllowOrigins)
 	}
 }
 
@@ -103,7 +118,10 @@ func TestLoadConfig_JWTSecretFile(t *testing.T) {
 auth:
   jwt_secret: "%s"
   jwt_expiry_access_minutes: 15
-  jwt_expiry_refresh_hours: 24`
+  jwt_expiry_refresh_hours: 24
+server:
+  port: ":8080"
+  allow_origins: "http://file.com"`
 	yaml = fmt.Sprintf(yaml, secretFile)
 	file := writeTempConfig(t, yaml)
 
@@ -113,5 +131,8 @@ auth:
 	}
 	if cfg.Auth.JWTSecret != "file-secret" {
 		t.Errorf("expected secret from file, got %s", cfg.Auth.JWTSecret)
+	}
+	if cfg.Server.AllowOrigins != "http://file.com" {
+		t.Errorf("allow origins not loaded correctly from file: %s", cfg.Server.AllowOrigins)
 	}
 }

@@ -64,6 +64,9 @@ func main() {
 	infrastructure.Migrate(db,
 		&authModel.User{},
 		&authModel.UserSession{},
+		&authModel.UserLoginMethod{},
+		&authModel.Role{},
+		&authModel.UserRole{},
 		&invModel.Invoice{},
 		&merchModel.Merchant{},
 		&merchModel.Store{},
@@ -78,22 +81,37 @@ func main() {
 		&customerModel.CustomerContact{},
 		&productModel.Product{},
 		&productModel.ProductImage{},
+<<<<<<< HEAD
 		&locationModel.Province{},
 		&locationModel.District{},
 		&locationModel.SubDistrict{},
+=======
+		&locationModel.Geography{},
+		&locationModel.Province{},
+		&locationModel.Amphure{},
+		&locationModel.Tambon{},
+>>>>>>> fe689551f1395d734858e14c96b935403361a507
 		&logModel.UserLog{},
 	)
+
+	// Seed default roles
+	infrastructure.SeedRoles(db)
 
 	// สร้าง Fiber app พร้อม ErrorHandler กลาง
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middleware.ErrorHandler,
 	})
 
-	// ✅ เปิดใช้งาน CORS สำหรับทุก origin (เพื่อเริ่มต้น)
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-	}))
+	// ✅ เปิดใช้งาน CORS และอนุญาตให้ส่งคุกกี้ข้ามโดเมนได้
+	corsCfg := cors.Config{
+		AllowOrigins:     cfg.Server.AllowOrigins,
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
+	}
+	if corsCfg.AllowOrigins == "" {
+		corsCfg.AllowOrigins = "http://localhost:3000"
+	}
+	app.Use(cors.New(corsCfg))
 
 	// Logger middleware
 	app.Use(middleware.Logger(db))
@@ -137,7 +155,11 @@ func main() {
 
 	// Location module
 	locationRepository := locationRepo.NewLocationRepository(db)
+<<<<<<< HEAD
 	locationUsecase := locationUC.NewLocationUseCase(locationRepository)
+=======
+	locationUsecase := locationUC.NewLocationUsecase(locationRepository)
+>>>>>>> fe689551f1395d734858e14c96b935403361a507
 	locationHandler := locationHTTP.NewLocationHandler(locationUsecase)
 	locationHandler.RegisterRoutes(app)
 

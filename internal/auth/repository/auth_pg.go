@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,10 @@ type AuthRepository interface {
 	GetSessionByToken(token string) (*domain.UserSession, error)
 	RevokeSession(token string) error
 	DeleteAllSessionsForUser(userID uuid.UUID) error
+	CreateLoginMethod(method *domain.UserLoginMethod) error
+	GetUserByLoginMethod(provider, providerUID string) (*domain.User, error)
+	AssignRoleToUser(userID uuid.UUID, roleName string) error
+	GetPrimaryRole(userID uuid.UUID) (string, error)
 }
 
 type authPG struct {
@@ -34,9 +39,6 @@ func (r *authPG) CreateUser(user *domain.User) error {
 		return err
 	}
 	user.PasswordHash = string(hashed)
-	if user.Role == "" {
-		user.Role = "user"
-	}
 	return r.db.Create(user).Error
 }
 
@@ -72,7 +74,7 @@ func (r *authPG) GetSessionByToken(token string) (*domain.UserSession, error) {
 	var sess domain.UserSession
 	err := r.db.
 		Preload("User").
-		Where("refresh_token = ?", token).
+		Where("refresh_token = ? AND revoked_at IS NULL", token).
 		First(&sess).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -86,9 +88,50 @@ func (r *authPG) GetSessionByToken(token string) (*domain.UserSession, error) {
 func (r *authPG) RevokeSession(token string) error {
 	return r.db.Model(&domain.UserSession{}).
 		Where("refresh_token = ?", token).
-		Update("revoked", true).Error
+		Update("revoked_at", time.Now()).Error
 }
 
 func (r *authPG) DeleteAllSessionsForUser(userID uuid.UUID) error {
 	return r.db.Where("user_id = ?", userID).Delete(&domain.UserSession{}).Error
+}
+
+func (r *authPG) CreateLoginMethod(m *domain.UserLoginMethod) error {
+	return r.db.Create(m).Error
+}
+
+func (r *authPG) GetUserByLoginMethod(provider, providerUID string) (*domain.User, error) {
+	var lm domain.UserLoginMethod
+	err := r.db.Preload("User").Where("provider = ? AND provider_uid = ?", provider, providerUID).First(&lm).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &lm.User, nil
+}
+
+func (r *authPG) AssignRoleToUser(userID uuid.UUID, roleName string) error {
+	var role domain.Role
+	if err := r.db.Where("name = ?", roleName).First(&role).Error; err != nil {
+		return err
+	}
+	ur := &domain.UserRole{UserID: userID, RoleID: role.ID}
+	return r.db.Create(ur).Error
+}
+
+func (r *authPG) GetPrimaryRole(userID uuid.UUID) (string, error) {
+	var role domain.Role
+	err := r.db.Model(&domain.Role{}).
+		Joins("JOIN user_roles ur ON ur.role_id = roles.id").
+		Where("ur.user_id = ?", userID).
+		Limit(1).
+		First(&role).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", nil
+		}
+		return "", err
+	}
+	return role.Name, nil
 }
