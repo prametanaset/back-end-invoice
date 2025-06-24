@@ -133,10 +133,7 @@ func (h *LocationHandler) GetSubDistrictById(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(ReturnType{
-		Value: int(sdistrict.ID),
-		Label: sdistrict.NameTh,
-	})
+	return c.JSON(sdistrict)
 }
 
 
