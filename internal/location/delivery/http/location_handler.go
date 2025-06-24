@@ -159,6 +159,25 @@ func (h *LocationHandler) GetSubDistrictById(c *fiber.Ctx) error {
 	return c.JSON(sdistrict)
 }
 
+func (h *LocationHandler) GetZipCodeBySubDistrictID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "ID ไม่ถูกต้อง",
+		})
+	}
+
+	zip, err := h.usecase.GetZipCodeBySubDistrictID(c.Context(), uint(id))
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "ไม่พบข้อมูลรหัสไปรษณีย์",
+		})
+	}
+
+	return c.JSON(fiber.Map{"zip_code": zip})
+}
+
 func (h *LocationHandler) GetSubDistricts(c *fiber.Ctx) error {
 	idParam := c.Params("district_id")
 	id, err := strconv.Atoi(idParam)
@@ -195,6 +214,7 @@ func (h *LocationHandler) RegisterRoutes(app *fiber.App) {
 	api.Get("/district/:id", h.GetDistrictById)
 	api.Get("/province/:province_id/districts", h.GetDistricts)
 	api.Get("/subdistrict/:id", h.GetSubDistrictById)
+	api.Get("/subdistrict/:id/zip_code", h.GetZipCodeBySubDistrictID)
 	api.Get("/districts/:district_id/subdistricts", h.GetSubDistricts)
 
 }

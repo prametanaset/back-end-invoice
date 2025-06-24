@@ -16,6 +16,7 @@ type LocationUsecase interface {
 	// Sub-District
 	GetSubDistrictsById(ctx context.Context, id uint) (*domain.SubDistrict, error)
 	GetSubDistricts(ctx context.Context, id uint) ([]domain.SubDistrict, error)
+	GetZipCodeBySubDistrictID(ctx context.Context, id uint) (int, error)
 }
 
 type locationUsecase struct {
@@ -55,4 +56,8 @@ func (u *locationUsecase) GetSubDistricts(ctx context.Context, id uint) ([]domai
 
 func (u *locationUsecase) GetSubDistrictsById(ctx context.Context, id uint) (*domain.SubDistrict, error) {
 	return u.repo.GetSubDistrictsById(ctx, id)
+}
+
+func (u *locationUsecase) GetZipCodeBySubDistrictID(ctx context.Context, id uint) (int, error) {
+	return u.repo.GetZipCodeBySubDistrictID(ctx, id)
 }

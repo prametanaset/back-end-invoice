@@ -15,6 +15,7 @@ type LocationRepository interface {
 	GetDistricts(ctx context.Context, id uint) ([]domain.District, error)
 	GetSubDistrictsById(ctx context.Context, id uint) (*domain.SubDistrict, error)
 	GetSubDistricts(ctx context.Context, id uint) ([]domain.SubDistrict, error)
+	GetZipCodeBySubDistrictID(ctx context.Context, id uint) (int, error)
 }
 
 type locationRepository struct {
@@ -82,4 +83,12 @@ func (r *locationRepository) GetSubDistrictsById(ctx context.Context, id uint) (
 		return nil, err
 	}
 	return &sdistricts, nil
+}
+
+func (r *locationRepository) GetZipCodeBySubDistrictID(ctx context.Context, id uint) (int, error) {
+	var sd domain.SubDistrict
+	if err := r.db.WithContext(ctx).Select("zip_code").First(&sd, id).Error; err != nil {
+		return 0, err
+	}
+	return sd.ZipCode, nil
 }
