@@ -68,6 +68,7 @@ func main() {
 		&authModel.Role{},
 		&authModel.UserRole{},
 		&invModel.Invoice{},
+		&merchModel.MerchantType{},
 		&merchModel.Merchant{},
 		&merchModel.Store{},
 		&merchModel.StoreAddress{},
@@ -87,8 +88,9 @@ func main() {
 		&logModel.UserLog{},
 	)
 
-	// Seed default roles
+	// Seed default roles and merchant types
 	infrastructure.SeedRoles(db)
+	infrastructure.SeedMerchantTypes(db)
 
 	// สร้าง Fiber app พร้อม ErrorHandler กลาง
 	app := fiber.New(fiber.Config{
