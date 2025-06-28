@@ -58,7 +58,15 @@ func (u *merchantUC) CreateMerchant(userID uuid.UUID, merchantType string) (*dom
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 
-	exist, err := u.repo.GetMerchantByUserAndType(userID, merchantType)
+	mt, err := u.repo.GetMerchantTypeByName(merchantType)
+	if err != nil {
+		return nil, err
+	}
+	if mt == nil {
+		return nil, apperror.New(fiber.StatusBadRequest)
+	}
+
+	exist, err := u.repo.GetMerchantByUserAndType(userID, mt.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +74,11 @@ func (u *merchantUC) CreateMerchant(userID uuid.UUID, merchantType string) (*dom
 		return nil, apperror.New(fiber.StatusConflict)
 	}
 
-	m := &domain.Merchant{UserID: userID, MerchantType: merchantType}
+	m := &domain.Merchant{UserID: userID, MerchantTypeID: mt.ID}
 	if err := u.repo.CreateMerchant(m); err != nil {
 		return nil, err
 	}
+	m.MerchantType = *mt
 	return m, nil
 }
 
@@ -93,7 +102,7 @@ func (u *merchantUC) AddPersonInfo(merchantID uuid.UUID, firstName, lastName str
 	if m == nil {
 		return nil, apperror.New(fiber.StatusNotFound)
 	}
-	if m.MerchantType != "person" {
+	if m.MerchantType.Name != "person" {
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 	p := &domain.PersonMerchant{
@@ -116,7 +125,7 @@ func (u *merchantUC) AddCompanyInfo(merchantID uuid.UUID, companyName, vatNo str
 	if m == nil {
 		return nil, apperror.New(fiber.StatusNotFound)
 	}
-	if m.MerchantType != "company" {
+	if m.MerchantType.Name != "company" {
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 	c := &domain.CompanyMerchant{

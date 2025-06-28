@@ -118,7 +118,7 @@ func (h *MerchantHandler) RegisterMerchant(c *fiber.Ctx) error {
 		return err
 	}
 
-	switch merchant.MerchantType {
+	switch merchant.MerchantType.Name {
 	case "person":
 		if body.Person == nil {
 			return apperror.New(fiber.StatusBadRequest)
