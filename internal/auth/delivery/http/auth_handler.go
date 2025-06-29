@@ -152,6 +152,15 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	}
 	if m != nil {
 		merchResp := fiber.Map{"merchant": m}
+
+		stores, err := h.merchantUC.ListStores(m.ID)
+		if err != nil {
+			return err
+		}
+		if len(stores) > 0 {
+			merchResp["stores"] = stores
+		}
+
 		switch m.MerchantType.Name {
 		case "person":
 			p, err := h.merchantUC.GetPerson(m.ID)
@@ -170,6 +179,7 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 				merchResp["company"] = comp
 			}
 		}
+
 		resp["merchant_info"] = merchResp
 	}
 
