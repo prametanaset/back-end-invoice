@@ -152,7 +152,7 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	}
 	if m != nil {
 		merchResp := fiber.Map{"merchant": m}
-		switch m.MerchantType {
+		switch m.MerchantType.Name {
 		case "person":
 			p, err := h.merchantUC.GetPerson(m.ID)
 			if err != nil {

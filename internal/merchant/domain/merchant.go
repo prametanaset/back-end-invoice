@@ -7,9 +7,10 @@ import (
 )
 
 type Merchant struct {
-	ID           uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	UserID       uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
-	MerchantType string    `gorm:"type:varchar(20);not null" json:"merchant_type"`
+	ID             uuid.UUID    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	UserID         uuid.UUID    `gorm:"type:uuid;not null" json:"user_id"`
+	MerchantTypeID uint         `gorm:"not null" json:"merchant_type_id"`
+	MerchantType   MerchantType `json:"merchant_type"`
 }
 
 type Store struct {

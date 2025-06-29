@@ -10,8 +10,10 @@ import (
 type MerchantRepository interface {
 	CreateMerchant(m *domain.Merchant) error
 	GetMerchantByUser(userID uuid.UUID) (*domain.Merchant, error)
-	GetMerchantByUserAndType(userID uuid.UUID, merchantType string) (*domain.Merchant, error)
+	GetMerchantByUserAndType(userID uuid.UUID, merchantTypeID uint) (*domain.Merchant, error)
 	GetMerchant(id uuid.UUID) (*domain.Merchant, error)
+	GetMerchantTypeByName(name string) (*domain.MerchantType, error)
+	GetMerchantType(id uint) (*domain.MerchantType, error)
 	CreateStore(store *domain.Store, addr *domain.StoreAddress) error
 	ListStores(merchantID uuid.UUID) ([]domain.Store, error)
 	CreatePerson(p *domain.PersonMerchant) error
@@ -34,7 +36,7 @@ func (r *merchantPG) CreateMerchant(m *domain.Merchant) error {
 
 func (r *merchantPG) GetMerchantByUser(userID uuid.UUID) (*domain.Merchant, error) {
 	var m domain.Merchant
-	err := r.db.Where("user_id = ?", userID).First(&m).Error
+	err := r.db.Preload("MerchantType").Where("user_id = ?", userID).First(&m).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -44,9 +46,9 @@ func (r *merchantPG) GetMerchantByUser(userID uuid.UUID) (*domain.Merchant, erro
 	return &m, nil
 }
 
-func (r *merchantPG) GetMerchantByUserAndType(userID uuid.UUID, merchantType string) (*domain.Merchant, error) {
+func (r *merchantPG) GetMerchantByUserAndType(userID uuid.UUID, merchantTypeID uint) (*domain.Merchant, error) {
 	var m domain.Merchant
-	err := r.db.Where("user_id = ? AND merchant_type = ?", userID, merchantType).First(&m).Error
+	err := r.db.Where("user_id = ? AND merchant_type_id = ?", userID, merchantTypeID).First(&m).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -58,7 +60,7 @@ func (r *merchantPG) GetMerchantByUserAndType(userID uuid.UUID, merchantType str
 
 func (r *merchantPG) GetMerchant(id uuid.UUID) (*domain.Merchant, error) {
 	var m domain.Merchant
-	err := r.db.First(&m, "id = ?", id).Error
+	err := r.db.Preload("MerchantType").First(&m, "id = ?", id).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -66,6 +68,30 @@ func (r *merchantPG) GetMerchant(id uuid.UUID) (*domain.Merchant, error) {
 		return nil, err
 	}
 	return &m, nil
+}
+
+func (r *merchantPG) GetMerchantTypeByName(name string) (*domain.MerchantType, error) {
+	var mt domain.MerchantType
+	err := r.db.Where("name = ?", name).First(&mt).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &mt, nil
+}
+
+func (r *merchantPG) GetMerchantType(id uint) (*domain.MerchantType, error) {
+	var mt domain.MerchantType
+	err := r.db.First(&mt, "id = ?", id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &mt, nil
 }
 
 func (r *merchantPG) CreateStore(store *domain.Store, addr *domain.StoreAddress) error {
