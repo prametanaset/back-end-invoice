@@ -54,7 +54,7 @@ func (u *merchantUC) GetMyMerchant(userID uuid.UUID) (*domain.Merchant, error) {
 }
 
 func (u *merchantUC) CreateMerchant(userID uuid.UUID, merchantType string) (*domain.Merchant, error) {
-	if merchantType != "person" && merchantType != "company" {
+	if merchantType != domain.MerchantTypePerson && merchantType != domain.MerchantTypeCompany {
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 
@@ -92,6 +92,30 @@ func (u *merchantUC) CreateMerchant(userID uuid.UUID, merchantType string) (*dom
 }
 
 func (u *merchantUC) CreateStore(merchantID uuid.UUID, name string, branch string, addr domain.StoreAddress) (*domain.Store, error) {
+	m, err := u.repo.GetMerchant(merchantID)
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return nil, apperror.New(fiber.StatusNotFound)
+	}
+
+	// Enforce branch limits based on merchant type.
+	stores, err := u.repo.ListStores(merchantID)
+	if err != nil {
+		return nil, err
+	}
+	limit := -1 // unlimited by default
+	switch m.MerchantType.Name {
+	case domain.MerchantTypePerson:
+		limit = 1
+	case domain.MerchantTypeCompany:
+		limit = -1
+	}
+	if limit != -1 && len(stores) >= limit {
+		return nil, apperror.New(fiber.StatusConflict)
+	}
+
 	s := &domain.Store{MerchantID: merchantID, StoreName: name, BranchNo: branch}
 	if err := u.repo.CreateStore(s, &addr); err != nil {
 		return nil, err
@@ -111,7 +135,7 @@ func (u *merchantUC) AddPersonInfo(merchantID uuid.UUID, firstName, lastName str
 	if m == nil {
 		return nil, apperror.New(fiber.StatusNotFound)
 	}
-	if m.MerchantType.Name != "person" {
+	if m.MerchantType.Name != domain.MerchantTypePerson {
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 	p := &domain.PersonMerchant{
@@ -134,7 +158,7 @@ func (u *merchantUC) AddCompanyInfo(merchantID uuid.UUID, companyName, vatNo str
 	if m == nil {
 		return nil, apperror.New(fiber.StatusNotFound)
 	}
-	if m.MerchantType.Name != "company" {
+	if m.MerchantType.Name != domain.MerchantTypeCompany {
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 	c := &domain.CompanyMerchant{

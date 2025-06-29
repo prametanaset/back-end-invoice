@@ -1,6 +1,7 @@
 package http
 
 import (
+	"invoice_project/internal/merchant/domain"
 	"invoice_project/internal/merchant/usecase"
 	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
@@ -119,7 +120,7 @@ func (h *MerchantHandler) RegisterMerchant(c *fiber.Ctx) error {
 	}
 
 	switch merchant.MerchantType.Name {
-	case "person":
+	case domain.MerchantTypePerson:
 		if body.Person == nil {
 			return apperror.New(fiber.StatusBadRequest)
 		}
@@ -130,7 +131,7 @@ func (h *MerchantHandler) RegisterMerchant(c *fiber.Ctx) error {
 		if _, err := h.uc.AddPersonInfo(merchant.ID, body.Person.FirstName, body.Person.LastName, vat); err != nil {
 			return err
 		}
-	case "company":
+	case domain.MerchantTypeCompany:
 		if body.Company == nil {
 			return apperror.New(fiber.StatusBadRequest)
 		}
