@@ -58,6 +58,15 @@ func (u *merchantUC) CreateMerchant(userID uuid.UUID, merchantType string) (*dom
 		return nil, apperror.New(fiber.StatusBadRequest)
 	}
 
+	// Prevent creating a merchant when a store already exists for the user.
+	hasStore, err := u.HasStore(userID)
+	if err != nil {
+		return nil, err
+	}
+	if hasStore {
+		return nil, apperror.New(fiber.StatusConflict)
+	}
+
 	mt, err := u.repo.GetMerchantTypeByName(merchantType)
 	if err != nil {
 		return nil, err
