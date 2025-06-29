@@ -29,7 +29,7 @@ func NewLocationRepository(db *gorm.DB) LocationRepository {
 // province
 func (r *locationRepository) GetProvinceAll(ctx context.Context) ([]domain.Province, error) {
 	var provinces []domain.Province
-	if err := r.db.WithContext(ctx).Find(&provinces).Error; err != nil {
+	if err := r.db.WithContext(ctx).Order("name_th ASC").Find(&provinces).Error; err != nil {
 		return nil, err
 	}
 	return provinces, nil
@@ -45,7 +45,7 @@ func (r *locationRepository) GetProvinceByID(ctx context.Context, id uint) (*dom
 
 func (r *locationRepository) GetProvinceByGeoID(ctx context.Context, geoID uint) ([]domain.Province, error) {
 	var provinces []domain.Province
-	if err := r.db.WithContext(ctx).Where("geography_id = ?", geoID).Find(&provinces).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("geography_id = ?", geoID).Order("name_th ASC").Find(&provinces).Error; err != nil {
 		return nil, err
 	}
 	return provinces, nil
@@ -62,7 +62,7 @@ func (r *locationRepository) GetDistrictById(ctx context.Context, id uint) (*dom
 
 func (r *locationRepository) GetDistricts(ctx context.Context, id uint) ([]domain.District, error) {
 	var districts []domain.District
-	if err := r.db.WithContext(ctx).Where("province_id = ?", id).Find(&districts).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("province_id = ?", id).Order("name_th ASC").Find(&districts).Error; err != nil {
 		return nil, err
 	}
 	return districts, nil
@@ -71,7 +71,7 @@ func (r *locationRepository) GetDistricts(ctx context.Context, id uint) ([]domai
 // sub-district
 func (r *locationRepository) GetSubDistricts(ctx context.Context, id uint) ([]domain.SubDistrict, error) {
 	var sdistricts []domain.SubDistrict
-	if err := r.db.WithContext(ctx).Where("district_id = ?", id).Find(&sdistricts).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("district_id = ?", id).Order("name_th ASC").Find(&sdistricts).Error; err != nil {
 		return nil, err
 	}
 	return sdistricts, nil

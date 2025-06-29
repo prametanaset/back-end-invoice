@@ -28,7 +28,7 @@ type CompanyCustomer struct {
 	CustomerID   uint     `gorm:"not null" json:"customer_id"`
 	Customer     Customer `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	CompanyName  string   `gorm:"type:text" json:"company_name"`
-	VatNo        string   `gorm:"type:text" json:"vat_no"`
+	Tin        string   `gorm:"type:text" json:"tin"`
 	BranchNo     int      `json:"branch_no"`
 }
 
@@ -38,7 +38,7 @@ type PersonCustomer struct {
 	Customer   Customer `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	FirstName  string   `gorm:"type:text" json:"first_name"`
 	LastName   string   `gorm:"type:text" json:"last_name"`
-	VatNo      string   `gorm:"type:text" json:"vat_no"`
+	Tin        string   `gorm:"type:text" json:"tin"`
 }
 
 type CustomerAddress struct {
