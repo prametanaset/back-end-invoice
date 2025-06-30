@@ -14,6 +14,7 @@ type MerchantUsecase interface {
 	CreateMerchant(userID uuid.UUID, merchantType string) (*domain.Merchant, error)
 	CreateStore(merchantID uuid.UUID, name string, branch string, addr domain.StoreAddress) (*domain.Store, error)
 	ListStores(merchantID uuid.UUID) ([]domain.Store, error)
+	DeleteStore(storeID uuid.UUID) error
 	AddPersonInfo(merchantID uuid.UUID, firstName, lastName string, vatNo *string) (*domain.PersonMerchant, error)
 	AddCompanyInfo(merchantID uuid.UUID, companyName, vatNo string) (*domain.CompanyMerchant, error)
 	AddContact(merchantID uuid.UUID, contactType, contactValue string) (*domain.MerchantContact, error)
@@ -125,6 +126,10 @@ func (u *merchantUC) CreateStore(merchantID uuid.UUID, name string, branch strin
 
 func (u *merchantUC) ListStores(merchantID uuid.UUID) ([]domain.Store, error) {
 	return u.repo.ListStores(merchantID)
+}
+
+func (u *merchantUC) DeleteStore(storeID uuid.UUID) error {
+	return u.repo.DeleteStore(storeID)
 }
 
 func (u *merchantUC) AddPersonInfo(merchantID uuid.UUID, firstName, lastName string, vatNo *string) (*domain.PersonMerchant, error) {

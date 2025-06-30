@@ -22,6 +22,7 @@ type MerchantRepository interface {
 	ListContacts(merchantID uuid.UUID) ([]domain.MerchantContact, error)
 	GetPerson(merchantID uuid.UUID) (*domain.PersonMerchant, error)
 	GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, error)
+	DeleteStore(storeID uuid.UUID) error
 }
 
 type merchantPG struct{ db *gorm.DB }
@@ -156,4 +157,16 @@ func (r *merchantPG) GetCompany(merchantID uuid.UUID) (*domain.CompanyMerchant, 
 		return nil, err
 	}
 	return &c, nil
+}
+
+func (r *merchantPG) DeleteStore(storeID uuid.UUID) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("store_id = ?", storeID).Delete(&domain.StoreAddress{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&domain.Store{}, "id = ?", storeID).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
