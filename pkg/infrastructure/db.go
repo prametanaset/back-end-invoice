@@ -41,6 +41,13 @@ type AppConfig struct {
 		TokenFile       string `yaml:"token_file"`
 		FromEmail       string `yaml:"from_email"`
 	} `yaml:"gmail"`
+	SMTP struct {
+		Host      string `yaml:"host"`
+		Port      int    `yaml:"port"`
+		Username  string `yaml:"username"`
+		Password  string `yaml:"password"`
+		FromEmail string `yaml:"from_email"`
+	} `yaml:"smtp"`
 	Server ServerConfig `yaml:"server"`
 }
 
@@ -103,6 +110,21 @@ func LoadConfig(path string) (*AppConfig, error) {
 	}
 	if env := os.Getenv("GMAIL_FROM_EMAIL"); env != "" {
 		cfg.Gmail.FromEmail = env
+	}
+	if env := os.Getenv("SMTP_HOST"); env != "" {
+		cfg.SMTP.Host = env
+	}
+	if env := os.Getenv("SMTP_PORT"); env != "" {
+		fmt.Sscanf(env, "%d", &cfg.SMTP.Port)
+	}
+	if env := os.Getenv("SMTP_USERNAME"); env != "" {
+		cfg.SMTP.Username = env
+	}
+	if env := os.Getenv("SMTP_PASSWORD"); env != "" {
+		cfg.SMTP.Password = env
+	}
+	if env := os.Getenv("SMTP_FROM_EMAIL"); env != "" {
+		cfg.SMTP.FromEmail = env
 	}
 	// If JWTSecret points to a file, read its contents
 	if cfg.Auth.JWTSecret != "" {

@@ -131,7 +131,10 @@ func main() {
 		cfg.Auth.JWTExpiryRefreshHours,
 	)
 	var otpService otp.Service
-	if cfg.Gmail.CredentialsFile != "" && cfg.Gmail.TokenFile != "" && cfg.Gmail.FromEmail != "" {
+	switch {
+	case cfg.SMTP.Host != "" && cfg.SMTP.FromEmail != "":
+		otpService = otp.NewSMTPOTPService(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password, cfg.SMTP.FromEmail)
+	case cfg.Gmail.CredentialsFile != "" && cfg.Gmail.TokenFile != "" && cfg.Gmail.FromEmail != "":
 		creds, err := os.ReadFile(cfg.Gmail.CredentialsFile)
 		if err != nil {
 			log.Fatalf("Cannot read gmail credentials: %v", err)
@@ -145,7 +148,7 @@ func main() {
 			log.Fatalf("Cannot init gmail otp service: %v", err)
 		}
 		otpService = svc
-	} else {
+	default:
 		otpService = otp.NewInMemoryOTPService()
 	}
 	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret, otpService)
