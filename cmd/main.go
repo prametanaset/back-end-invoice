@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -129,7 +130,24 @@ func main() {
 		cfg.Auth.JWTExpiryAccessMin,
 		cfg.Auth.JWTExpiryRefreshHours,
 	)
-	otpService := otp.NewInMemoryOTPService()
+	var otpService otp.Service
+	if cfg.Gmail.CredentialsFile != "" && cfg.Gmail.TokenFile != "" && cfg.Gmail.FromEmail != "" {
+		creds, err := os.ReadFile(cfg.Gmail.CredentialsFile)
+		if err != nil {
+			log.Fatalf("Cannot read gmail credentials: %v", err)
+		}
+		token, err := os.ReadFile(cfg.Gmail.TokenFile)
+		if err != nil {
+			log.Fatalf("Cannot read gmail token: %v", err)
+		}
+		svc, err := otp.NewGmailOTPService(context.Background(), creds, token, cfg.Gmail.FromEmail)
+		if err != nil {
+			log.Fatalf("Cannot init gmail otp service: %v", err)
+		}
+		otpService = svc
+	} else {
+		otpService = otp.NewInMemoryOTPService()
+	}
 	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret, otpService)
 	authHandler.RegisterRoutes(app)
 

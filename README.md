@@ -35,3 +35,17 @@ Run the project with:
 go mod tidy
 go run cmd/main.go
 ```
+
+### Using Gmail OTP Service
+
+To send OTP codes via Gmail, provide OAuth credentials and a token file
+via the following environment variables or in `configs/config.yaml`:
+
+```bash
+export GMAIL_CREDENTIALS_FILE=/path/to/credentials.json
+export GMAIL_TOKEN_FILE=/path/to/token.json
+export GMAIL_FROM_EMAIL=you@example.com
+```
+
+When these values are set, the server will use Gmail to deliver OTP
+codes. Otherwise an in-memory service is used.
