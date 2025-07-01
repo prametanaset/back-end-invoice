@@ -63,7 +63,7 @@ func (g *GmailOTPService) SendOTP(ctx context.Context, to string) (string, error
 	if err != nil {
 		return "", err
 	}
-	msgStr := fmt.Sprintf("To: %s\r\nSubject: Your OTP Code\r\n\r\nYour OTP is %s", to, code)
+	msgStr := buildOTPEmail(to, code)
 	msg := &gmail.Message{Raw: base64.URLEncoding.EncodeToString([]byte(msgStr))}
 	if _, err := g.srv.Users.Messages.Send("me", msg).Do(); err != nil {
 		return "", err
