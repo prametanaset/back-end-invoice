@@ -36,6 +36,11 @@ type AppConfig struct {
 		JWTExpiryAccessMin    int    `yaml:"jwt_expiry_access_minutes"`
 		JWTExpiryRefreshHours int    `yaml:"jwt_expiry_refresh_hours"`
 	} `yaml:"auth"`
+	Gmail struct {
+		CredentialsFile string `yaml:"credentials_file"`
+		TokenFile       string `yaml:"token_file"`
+		FromEmail       string `yaml:"from_email"`
+	} `yaml:"gmail"`
 	Server ServerConfig `yaml:"server"`
 }
 
@@ -89,6 +94,15 @@ func LoadConfig(path string) (*AppConfig, error) {
 	}
 	if env := os.Getenv("ALLOW_ORIGINS"); env != "" {
 		cfg.Server.AllowOrigins = env
+	}
+	if env := os.Getenv("GMAIL_CREDENTIALS_FILE"); env != "" {
+		cfg.Gmail.CredentialsFile = env
+	}
+	if env := os.Getenv("GMAIL_TOKEN_FILE"); env != "" {
+		cfg.Gmail.TokenFile = env
+	}
+	if env := os.Getenv("GMAIL_FROM_EMAIL"); env != "" {
+		cfg.Gmail.FromEmail = env
 	}
 	// If JWTSecret points to a file, read its contents
 	if cfg.Auth.JWTSecret != "" {
