@@ -35,6 +35,8 @@ import (
 	productRepo "invoice_project/internal/product/repository"
 	productUC "invoice_project/internal/product/usecase"
 
+	"invoice_project/pkg/otp"
+
 	locationHTTP "invoice_project/internal/location/delivery/http"
 	locationModel "invoice_project/internal/location/domain"
 	locationRepo "invoice_project/internal/location/repository"
@@ -127,7 +129,8 @@ func main() {
 		cfg.Auth.JWTExpiryAccessMin,
 		cfg.Auth.JWTExpiryRefreshHours,
 	)
-	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret)
+	otpService := otp.NewInMemoryOTPService()
+	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret, otpService)
 	authHandler.RegisterRoutes(app)
 
 	// ตระเตรียม Invoice module

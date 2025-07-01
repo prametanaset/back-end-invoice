@@ -14,6 +14,13 @@ import (
 	"google.golang.org/api/option"
 )
 
+// Service defines OTP sending and verification behaviour.
+type Service interface {
+	SendOTP(ctx context.Context, to string) (string, error)
+	VerifyOTP(to, code string) bool
+}
+
+// GmailOTPService implements the Service interface using Gmail API.
 type GmailOTPService struct {
 	srv       *gmail.Service
 	fromEmail string

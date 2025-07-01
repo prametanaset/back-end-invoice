@@ -33,3 +33,8 @@ type LogoutRequest struct {
 type CheckEmailRequest struct {
 	Username string `json:"username"`
 }
+
+// SendOTPRequest represents the payload to request an OTP to be sent.
+type SendOTPRequest struct {
+	Email string `json:"email"`
+}
