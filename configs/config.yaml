@@ -22,3 +22,10 @@ gmail:
   # Path to a token JSON obtained after OAuth flow
   token_file: ""
   from_email: ""
+
+smtp:
+  host: ""
+  port: 587
+  username: ""
+  password: ""
+  from_email: ""

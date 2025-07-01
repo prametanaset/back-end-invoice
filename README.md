@@ -49,3 +49,20 @@ export GMAIL_FROM_EMAIL=you@example.com
 
 When these values are set, the server will use Gmail to deliver OTP
 codes. Otherwise an in-memory service is used.
+
+### Using SMTP OTP Service
+
+You can also send OTP codes through a generic SMTP server. Provide the
+SMTP connection details via environment variables or `configs/config.yaml`:
+
+```bash
+export SMTP_HOST=smtp.example.com
+export SMTP_PORT=587
+export SMTP_USERNAME=user
+export SMTP_PASSWORD=pass
+export SMTP_FROM_EMAIL=noreply@example.com
+```
+
+If `SMTP_HOST` and `SMTP_FROM_EMAIL` are set, the application will use the
+SMTP service for delivering OTP codes. Gmail settings take precedence
+when provided; otherwise an in-memory service is used.
