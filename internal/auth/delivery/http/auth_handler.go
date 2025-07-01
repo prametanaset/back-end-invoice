@@ -7,6 +7,7 @@ import (
 	merchUC "invoice_project/internal/merchant/usecase"
 	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
+	"invoice_project/pkg/otp"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -16,13 +17,15 @@ type AuthHandler struct {
 	authUC     usecase.AuthUsecase
 	merchantUC merchUC.MerchantUsecase
 	jwtSecret  string
+	otpSvc     otp.Service
 }
 
-func NewAuthHandler(authUC usecase.AuthUsecase, merchantUC merchUC.MerchantUsecase, jwtSecret string) *AuthHandler {
+func NewAuthHandler(authUC usecase.AuthUsecase, merchantUC merchUC.MerchantUsecase, jwtSecret string, otpSvc otp.Service) *AuthHandler {
 	return &AuthHandler{
 		authUC:     authUC,
 		merchantUC: merchantUC,
 		jwtSecret:  jwtSecret,
+		otpSvc:     otpSvc,
 	}
 }
 
@@ -122,6 +125,20 @@ func (h *AuthHandler) CheckEmail(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"taken": taken})
 }
 
+func (h *AuthHandler) SendOTP(c *fiber.Ctx) error {
+	var body SendOTPRequest
+	if err := c.BodyParser(&body); err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if body.Email == "" {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if _, err := h.otpSvc.SendOTP(c.Context(), body.Email); err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"message": "otp sent"})
+}
+
 func (h *AuthHandler) MerchantStatus(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
@@ -191,6 +208,7 @@ func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth := app.Group("/auth")
 	apiAuth.Post("/register", h.Register)
 	apiAuth.Post("/check-email", h.CheckEmail)
+	apiAuth.Post("/send-otp", h.SendOTP)
 	apiAuth.Post("/login", h.Login)
 	apiAuth.Post("/oauth-login", h.OAuthLogin)
 	apiAuth.Post("/refresh", h.Refresh)
