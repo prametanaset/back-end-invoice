@@ -2,7 +2,7 @@ package otp
 
 import "fmt"
 
-func buildOTPEmail(to, code string) string {
+func buildOTPEmail(to, code, ref string) string {
 	return fmt.Sprintf("To: %s\r\nSubject: Your OTP Code\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n"+
 		`<!DOCTYPE html>
 <html>
@@ -65,6 +65,7 @@ func buildOTPEmail(to, code string) string {
       <p>Hello,</p>
       <p>Here is your OTP code. Please use it to complete your verification:</p>
       <div class="otp-code">%s</div>
+      <p style="margin-top:10px;">Reference: <strong>%s</strong></p>
       <p>This code will expire in 5 minutes. Do not share this code with anyone.</p>
     </div>
     <div class="footer">
@@ -72,5 +73,5 @@ func buildOTPEmail(to, code string) string {
     </div>
   </div>
 </body>
-</html>`, to, code)
+</html>`, to, code, ref)
 }
