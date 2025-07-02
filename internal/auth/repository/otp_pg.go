@@ -15,6 +15,7 @@ type OTPRepository interface {
 	GetActiveOTP(dest, purpose string) (*domain.OTP, error)
 	MarkUsed(id uint64) error
 	IncrementAttempts(id uint64) error
+	RevokeOTP(id uint64) error
 }
 
 type otpPG struct{ db *gorm.DB }
@@ -47,4 +48,8 @@ func (r *otpPG) MarkUsed(id uint64) error {
 
 func (r *otpPG) IncrementAttempts(id uint64) error {
 	return r.db.Model(&domain.OTP{}).Where("id = ?", id).UpdateColumn("attempts", gorm.Expr("attempts + 1")).Error
+}
+
+func (r *otpPG) RevokeOTP(id uint64) error {
+	return r.db.Model(&domain.OTP{}).Where("id = ?", id).Update("revoked_at", time.Now()).Error
 }
