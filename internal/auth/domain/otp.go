@@ -6,6 +6,7 @@ import "time"
 type OTP struct {
 	ID          uint64    `gorm:"primaryKey;autoIncrement"`
 	Purpose     string    `gorm:"type:text;not null"`
+	Ref         string    `gorm:"type:text;not null"`
 	Destination string    `gorm:"type:text;not null"`
 	CodeHash    string    `gorm:"type:text;not null"`
 	CreatedAt   time.Time `gorm:"not null;default:now()"`
