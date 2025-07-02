@@ -119,6 +119,7 @@ func (r *productRepository) GetProduct(ctx context.Context, id uint) (*domain.Pr
 func (r *productRepository) ListProducts(ctx context.Context, storeID uuid.UUID) ([]domain.Product, error) {
 	var products []domain.Product
 	err := r.db.WithContext(ctx).
+		Preload("ProductImage").
 		Where("store_id = ?", storeID).
 		Find(&products).Error
 	return products, err

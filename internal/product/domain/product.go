@@ -17,6 +17,8 @@ type Product struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
+	ProductImage  *ProductImage    `gorm:"foreignKey:ProductID" json:"product_image,omitempty"`
+
 }
 
 type ProductImage struct {

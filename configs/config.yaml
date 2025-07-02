@@ -24,8 +24,8 @@ gmail:
   from_email: ""
 
 smtp:
-  host: ""
+  host: "smtp.gmail.com"
   port: 587
-  username: ""
-  password: ""
-  from_email: ""
+  username: "sunscaleup@gmail.com"
+  password: "owkk piyk whwe cmsl"
+  from_email: "sunscaleup@gmail.com"
