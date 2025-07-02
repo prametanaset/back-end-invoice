@@ -10,12 +10,13 @@ import (
 	"invoice_project/pkg/otp"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // OTPUsecase defines sending and verifying OTP codes.
 type OTPUsecase interface {
-	SendOTP(ctx context.Context, email, ref string) error
+	SendOTP(ctx context.Context, email string) (string, error)
 	VerifyOTP(ctx context.Context, email, ref, code string) error
 }
 
@@ -33,22 +34,23 @@ func NewOTPUsecase(authRepo repository.AuthRepository, otpRepo repository.OTPRep
 const otpPurposeVerifyEmail = "verify_email"
 const maxOTPAttempts = 5
 
-func (u *otpUC) SendOTP(ctx context.Context, email, ref string) error {
+func (u *otpUC) SendOTP(ctx context.Context, email string) (string, error) {
 	user, err := u.authRepo.GetUserByUsername(email)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if user == nil {
-		return apperror.New(fiber.StatusNotFound)
+		return "", apperror.New(fiber.StatusNotFound)
 	}
 	code, err := u.svc.SendOTP(ctx, email)
 	if err != nil {
-		return err
+		return "", err
 	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return "", err
 	}
+	ref := uuid.NewString()
 	otp := &domain.OTP{
 		Purpose:     otpPurposeVerifyEmail,
 		Ref:         ref,
@@ -56,7 +58,7 @@ func (u *otpUC) SendOTP(ctx context.Context, email, ref string) error {
 		CodeHash:    string(hashed),
 		ExpiresAt:   time.Now().Add(5 * time.Minute),
 	}
-	return u.otpRepo.CreateOTP(otp)
+	return ref, u.otpRepo.CreateOTP(otp)
 }
 
 func (u *otpUC) VerifyOTP(ctx context.Context, email, ref, code string) error {

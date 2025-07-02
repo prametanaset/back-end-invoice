@@ -129,13 +129,14 @@ func (h *AuthHandler) SendOTP(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if body.Email == "" || body.Ref == "" {
+	if body.Email == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if err := h.otpUC.SendOTP(c.Context(), body.Email, body.Ref); err != nil {
+	ref, err := h.otpUC.SendOTP(c.Context(), body.Email)
+	if err != nil {
 		return err
 	}
-	return c.JSON(fiber.Map{"message": "otp sent"})
+	return c.JSON(fiber.Map{"message": "otp sent", "ref": ref})
 }
 
 func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
