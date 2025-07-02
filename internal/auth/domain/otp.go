@@ -1,15 +1,10 @@
 package domain
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 // OTP stores a hashed OTP code and metadata for verification attempts.
 type OTP struct {
 	ID          uint64    `gorm:"primaryKey;autoIncrement"`
-	UserID      uuid.UUID `gorm:"type:uuid;not null"`
 	Purpose     string    `gorm:"type:text;not null"`
 	Destination string    `gorm:"type:text;not null"`
 	CodeHash    string    `gorm:"type:text;not null"`

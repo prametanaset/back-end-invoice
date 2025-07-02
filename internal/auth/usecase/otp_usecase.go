@@ -49,7 +49,6 @@ func (u *otpUC) SendOTP(ctx context.Context, email string) error {
 		return err
 	}
 	otp := &domain.OTP{
-		UserID:      user.ID,
 		Purpose:     otpPurposeVerifyEmail,
 		Destination: email,
 		CodeHash:    string(hashed),
@@ -66,7 +65,7 @@ func (u *otpUC) VerifyOTP(ctx context.Context, email, code string) error {
 	if user == nil {
 		return apperror.New(fiber.StatusNotFound)
 	}
-	otpRec, err := u.otpRepo.GetActiveOTP(user.ID, email, otpPurposeVerifyEmail)
+	otpRec, err := u.otpRepo.GetActiveOTP(email, otpPurposeVerifyEmail)
 	if err != nil {
 		return err
 	}

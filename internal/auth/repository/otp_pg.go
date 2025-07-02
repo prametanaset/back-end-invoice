@@ -6,14 +6,13 @@ import (
 
 	"invoice_project/internal/auth/domain"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // OTPRepository manages OTP persistence.
 type OTPRepository interface {
 	CreateOTP(o *domain.OTP) error
-	GetActiveOTP(userID uuid.UUID, dest, purpose string) (*domain.OTP, error)
+	GetActiveOTP(dest, purpose string) (*domain.OTP, error)
 	MarkUsed(id uint64) error
 	IncrementAttempts(id uint64) error
 }
@@ -29,10 +28,10 @@ func (r *otpPG) CreateOTP(o *domain.OTP) error {
 	return r.db.Create(o).Error
 }
 
-func (r *otpPG) GetActiveOTP(userID uuid.UUID, dest, purpose string) (*domain.OTP, error) {
+func (r *otpPG) GetActiveOTP(dest, purpose string) (*domain.OTP, error) {
 	var otp domain.OTP
-	err := r.db.Where("user_id = ? AND destination = ? AND purpose = ? AND used_at IS NULL AND revoked_at IS NULL AND expires_at > ?",
-		userID, dest, purpose, time.Now()).Order("created_at desc").First(&otp).Error
+	err := r.db.Where("destination = ? AND purpose = ? AND used_at IS NULL AND revoked_at IS NULL AND expires_at > ?",
+		dest, purpose, time.Now()).Order("created_at desc").First(&otp).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
