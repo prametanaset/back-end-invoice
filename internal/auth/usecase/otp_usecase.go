@@ -42,7 +42,8 @@ func (u *otpUC) SendOTP(ctx context.Context, email string) (string, error) {
 	if user == nil {
 		return "", apperror.New(fiber.StatusNotFound)
 	}
-	code, err := u.svc.SendOTP(ctx, email)
+	ref := uuid.NewString()
+	code, err := u.svc.SendOTP(ctx, email, ref)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +51,6 @@ func (u *otpUC) SendOTP(ctx context.Context, email string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	ref := uuid.NewString()
 	otp := &domain.OTP{
 		Purpose:     otpPurposeVerifyEmail,
 		Ref:         ref,

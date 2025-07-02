@@ -32,14 +32,14 @@ func NewSMTPOTPService(host string, port int, username, password, from string) *
 }
 
 // SendOTP generates an OTP code and delivers it using SMTP.
-func (s *SMTPOTPService) SendOTP(ctx context.Context, to string) (string, error) {
+func (s *SMTPOTPService) SendOTP(ctx context.Context, to, ref string) (string, error) {
 	code, err := generateCode()
 	if err != nil {
 		return "", err
 	}
 	addr := fmt.Sprintf("%s:%d", s.host, s.port)
 	auth := smtp.PlainAuth("", s.username, s.password, s.host)
-	msg := []byte(buildOTPEmail(to, code))
+	msg := []byte(buildOTPEmail(to, code, ref))
 	if err := s.sendMail(addr, auth, s.fromEmail, []string{to}, msg); err != nil {
 		return "", err
 	}

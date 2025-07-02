@@ -14,7 +14,7 @@ func TestSMTPSendOTP(t *testing.T) {
 		sent = true
 		return nil
 	}
-	code, err := svc.SendOTP(context.Background(), "to@example.com")
+	code, err := svc.SendOTP(context.Background(), "to@example.com", "ref123")
 	if err != nil {
 		t.Fatalf("SendOTP returned error: %v", err)
 	}

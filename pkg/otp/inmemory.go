@@ -17,12 +17,12 @@ func NewInMemoryOTPService() *InMemoryOTPService {
 }
 
 // SendOTP generates an OTP and logs it. It returns the generated code.
-func (s *InMemoryOTPService) SendOTP(ctx context.Context, to string) (string, error) {
+func (s *InMemoryOTPService) SendOTP(ctx context.Context, to, ref string) (string, error) {
 	code, err := generateCode()
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("sending OTP %s to %s\n", code, to)
+	fmt.Printf("sending OTP %s to %s with ref %s\n", code, to, ref)
 	s.otps[to] = otpEntry{Code: code, ExpiresAt: time.Now().Add(5 * time.Minute)}
 	return code, nil
 }

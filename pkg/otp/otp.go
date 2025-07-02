@@ -16,7 +16,7 @@ import (
 
 // Service defines OTP sending and verification behaviour.
 type Service interface {
-	SendOTP(ctx context.Context, to string) (string, error)
+	SendOTP(ctx context.Context, to, ref string) (string, error)
 	VerifyOTP(to, code string) bool
 }
 
@@ -58,12 +58,12 @@ func generateCode() (string, error) {
 	return fmt.Sprintf("%06d", n%1000000), nil
 }
 
-func (g *GmailOTPService) SendOTP(ctx context.Context, to string) (string, error) {
+func (g *GmailOTPService) SendOTP(ctx context.Context, to, ref string) (string, error) {
 	code, err := generateCode()
 	if err != nil {
 		return "", err
 	}
-	msgStr := buildOTPEmail(to, code)
+	msgStr := buildOTPEmail(to, code, ref)
 	msg := &gmail.Message{Raw: base64.URLEncoding.EncodeToString([]byte(msgStr))}
 	if _, err := g.srv.Users.Messages.Send("me", msg).Do(); err != nil {
 		return "", err
