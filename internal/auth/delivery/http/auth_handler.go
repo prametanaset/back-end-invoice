@@ -7,7 +7,6 @@ import (
 	merchUC "invoice_project/internal/merchant/usecase"
 	"invoice_project/pkg/apperror"
 	"invoice_project/pkg/middleware"
-	"invoice_project/pkg/otp"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -17,15 +16,15 @@ type AuthHandler struct {
 	authUC     usecase.AuthUsecase
 	merchantUC merchUC.MerchantUsecase
 	jwtSecret  string
-	otpSvc     otp.Service
+	otpUC      usecase.OTPUsecase
 }
 
-func NewAuthHandler(authUC usecase.AuthUsecase, merchantUC merchUC.MerchantUsecase, jwtSecret string, otpSvc otp.Service) *AuthHandler {
+func NewAuthHandler(authUC usecase.AuthUsecase, merchantUC merchUC.MerchantUsecase, jwtSecret string, otpUC usecase.OTPUsecase) *AuthHandler {
 	return &AuthHandler{
 		authUC:     authUC,
 		merchantUC: merchantUC,
 		jwtSecret:  jwtSecret,
-		otpSvc:     otpSvc,
+		otpUC:      otpUC,
 	}
 }
 
@@ -133,10 +132,24 @@ func (h *AuthHandler) SendOTP(c *fiber.Ctx) error {
 	if body.Email == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if _, err := h.otpSvc.SendOTP(c.Context(), body.Email); err != nil {
+	if err := h.otpUC.SendOTP(c.Context(), body.Email); err != nil {
 		return err
 	}
 	return c.JSON(fiber.Map{"message": "otp sent"})
+}
+
+func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
+	var body VerifyOTPRequest
+	if err := c.BodyParser(&body); err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if body.Email == "" || body.Code == "" {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Code); err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"message": "otp verified"})
 }
 
 func (h *AuthHandler) MerchantStatus(c *fiber.Ctx) error {
@@ -209,6 +222,7 @@ func (h *AuthHandler) RegisterRoutes(app *fiber.App) {
 	apiAuth.Post("/register", h.Register)
 	apiAuth.Post("/check-email", h.CheckEmail)
 	apiAuth.Post("/send-otp", h.SendOTP)
+	apiAuth.Post("/verify-otp", h.VerifyOTP)
 	apiAuth.Post("/login", h.Login)
 	apiAuth.Post("/oauth-login", h.OAuthLogin)
 	apiAuth.Post("/refresh", h.Refresh)
