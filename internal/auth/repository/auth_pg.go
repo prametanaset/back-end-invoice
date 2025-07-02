@@ -23,6 +23,7 @@ type AuthRepository interface {
 	GetUserByLoginMethod(provider, providerUID string) (*domain.User, error)
 	AssignRoleToUser(userID uuid.UUID, roleName string) error
 	GetPrimaryRole(userID uuid.UUID) (string, error)
+	SetUserVerified(userID uuid.UUID) error
 }
 
 type authPG struct {
@@ -134,4 +135,8 @@ func (r *authPG) GetPrimaryRole(userID uuid.UUID) (string, error) {
 		return "", err
 	}
 	return role.Name, nil
+}
+
+func (r *authPG) SetUserVerified(userID uuid.UUID) error {
+	return r.db.Model(&domain.User{}).Where("id = ?", userID).Update("is_verified", true).Error
 }

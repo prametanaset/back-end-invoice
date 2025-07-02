@@ -38,3 +38,9 @@ type CheckEmailRequest struct {
 type SendOTPRequest struct {
 	Email string `json:"email"`
 }
+
+// VerifyOTPRequest represents the payload for verifying an OTP code.
+type VerifyOTPRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}

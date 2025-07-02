@@ -152,7 +152,9 @@ func main() {
 	default:
 		otpService = otp.NewInMemoryOTPService()
 	}
-	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret, otpService)
+	otpRepo := authRepo.NewOTPRepository(db)
+	otpUsecase := authUC.NewOTPUsecase(authRepository, otpRepo, otpService)
+	authHandler := http.NewAuthHandler(authUsecase, merchUsecase, cfg.Auth.JWTSecret, otpUsecase)
 	authHandler.RegisterRoutes(app)
 
 	// ตระเตรียม Invoice module
