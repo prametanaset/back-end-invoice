@@ -31,6 +31,7 @@ func NewOTPUsecase(authRepo repository.AuthRepository, otpRepo repository.OTPRep
 }
 
 const otpPurposeVerifyEmail = "verify_email"
+const maxOTPAttempts = 5
 
 func (u *otpUC) SendOTP(ctx context.Context, email string) error {
 	user, err := u.authRepo.GetUserByUsername(email)
@@ -72,8 +73,15 @@ func (u *otpUC) VerifyOTP(ctx context.Context, email, code string) error {
 	if otpRec == nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
+	if otpRec.Attempts >= maxOTPAttempts {
+		_ = u.otpRepo.RevokeOTP(otpRec.ID)
+		return apperror.New(fiber.StatusBadRequest)
+	}
 	if err := bcrypt.CompareHashAndPassword([]byte(otpRec.CodeHash), []byte(code)); err != nil {
 		_ = u.otpRepo.IncrementAttempts(otpRec.ID)
+		if otpRec.Attempts+1 >= maxOTPAttempts {
+			_ = u.otpRepo.RevokeOTP(otpRec.ID)
+		}
 		return apperror.New(fiber.StatusBadRequest)
 	}
 	if err := u.otpRepo.MarkUsed(otpRec.ID); err != nil {
