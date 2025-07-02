@@ -70,6 +70,7 @@ func main() {
 		&authModel.UserLoginMethod{},
 		&authModel.Role{},
 		&authModel.UserRole{},
+		&authModel.OTP{},
 		&invModel.Invoice{},
 		&merchModel.MerchantType{},
 		&merchModel.Merchant{},
