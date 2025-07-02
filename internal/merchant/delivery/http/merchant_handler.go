@@ -196,12 +196,25 @@ func (h *MerchantHandler) ListStores(c *fiber.Ctx) error {
 	return c.JSON(stores)
 }
 
+func (h *MerchantHandler) DeleteStore(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if err := h.uc.DeleteStore(id); err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"message": "store deleted successfully"})
+}
+
 func (h *MerchantHandler) RegisterRoutes(app *fiber.App) {
 	api := app.Group("/merchants", middleware.RequireRoles("user", "admin"))
 	api.Post("/register", h.RegisterMerchant)
 	api.Post("/", h.CreateMerchant)
 	api.Post("/stores", h.CreateStore)
 	api.Get("/stores", h.ListStores)
+	api.Delete("/stores/:id", h.DeleteStore)
 	api.Post("/person", h.AddPerson)
 	api.Post("/company", h.AddCompany)
 	api.Post("/contacts", h.AddContact)
