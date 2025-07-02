@@ -129,10 +129,10 @@ func (h *AuthHandler) SendOTP(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if body.Email == "" {
+	if body.Email == "" || body.Ref == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if err := h.otpUC.SendOTP(c.Context(), body.Email); err != nil {
+	if err := h.otpUC.SendOTP(c.Context(), body.Email, body.Ref); err != nil {
 		return err
 	}
 	return c.JSON(fiber.Map{"message": "otp sent"})
@@ -143,10 +143,10 @@ func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if body.Email == "" || body.Code == "" {
+	if body.Email == "" || body.Code == "" || body.Ref == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Code); err != nil {
+	if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Ref, body.Code); err != nil {
 		return err
 	}
 	return c.JSON(fiber.Map{"message": "otp verified"})

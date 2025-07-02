@@ -15,8 +15,8 @@ import (
 
 // OTPUsecase defines sending and verifying OTP codes.
 type OTPUsecase interface {
-	SendOTP(ctx context.Context, email string) error
-	VerifyOTP(ctx context.Context, email, code string) error
+	SendOTP(ctx context.Context, email, ref string) error
+	VerifyOTP(ctx context.Context, email, ref, code string) error
 }
 
 type otpUC struct {
@@ -33,7 +33,7 @@ func NewOTPUsecase(authRepo repository.AuthRepository, otpRepo repository.OTPRep
 const otpPurposeVerifyEmail = "verify_email"
 const maxOTPAttempts = 5
 
-func (u *otpUC) SendOTP(ctx context.Context, email string) error {
+func (u *otpUC) SendOTP(ctx context.Context, email, ref string) error {
 	user, err := u.authRepo.GetUserByUsername(email)
 	if err != nil {
 		return err
@@ -51,6 +51,7 @@ func (u *otpUC) SendOTP(ctx context.Context, email string) error {
 	}
 	otp := &domain.OTP{
 		Purpose:     otpPurposeVerifyEmail,
+		Ref:         ref,
 		Destination: email,
 		CodeHash:    string(hashed),
 		ExpiresAt:   time.Now().Add(5 * time.Minute),
@@ -58,7 +59,7 @@ func (u *otpUC) SendOTP(ctx context.Context, email string) error {
 	return u.otpRepo.CreateOTP(otp)
 }
 
-func (u *otpUC) VerifyOTP(ctx context.Context, email, code string) error {
+func (u *otpUC) VerifyOTP(ctx context.Context, email, ref, code string) error {
 	user, err := u.authRepo.GetUserByUsername(email)
 	if err != nil {
 		return err
@@ -66,7 +67,7 @@ func (u *otpUC) VerifyOTP(ctx context.Context, email, code string) error {
 	if user == nil {
 		return apperror.New(fiber.StatusNotFound)
 	}
-	otpRec, err := u.otpRepo.GetActiveOTP(email, otpPurposeVerifyEmail)
+	otpRec, err := u.otpRepo.GetActiveOTP(email, otpPurposeVerifyEmail, ref)
 	if err != nil {
 		return err
 	}
