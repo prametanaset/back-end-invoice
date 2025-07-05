@@ -43,6 +43,11 @@ import (
 	locationRepo "invoice_project/internal/location/repository"
 	locationUC "invoice_project/internal/location/usecase"
 
+	feedbackHTTP "invoice_project/internal/feedback/delivery/http"
+	feedbackModel "invoice_project/internal/feedback/domain"
+	feedbackRepo "invoice_project/internal/feedback/repository"
+	feedbackUC "invoice_project/internal/feedback/usecase"
+
 	logModel "invoice_project/internal/log/domain"
 )
 
@@ -89,6 +94,7 @@ func main() {
 		&locationModel.Province{},
 		&locationModel.District{},
 		&locationModel.SubDistrict{},
+		&feedbackModel.Feedback{},
 		&logModel.UserLog{},
 	)
 
@@ -180,6 +186,12 @@ func main() {
 	locationUsecase := locationUC.NewLocationUseCase(locationRepository)
 	locationHandler := locationHTTP.NewLocationHandler(locationUsecase)
 	locationHandler.RegisterRoutes(app)
+
+	// Feedback module
+	feedbackRepository := feedbackRepo.NewFeedbackRepository(db)
+	feedbackUsecase := feedbackUC.NewFeedbackUsecase(feedbackRepository)
+	feedbackHandler := feedbackHTTP.NewInvoiceHandler(feedbackUsecase)
+	feedbackHandler.RegisterRoutes(app)
 
 	// สตาร์ทเซิร์ฟเวอร์
 	log.Printf("Server is running on port %s\n", cfg.Server.Port)
