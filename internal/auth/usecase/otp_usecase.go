@@ -34,15 +34,17 @@ func NewOTPUsecase(authRepo repository.AuthRepository, otpRepo repository.OTPRep
 const maxOTPAttempts = 5
 
 func (u *otpUC) SendOTP(ctx context.Context, email, purpose string) (string, error) {
-	user, err := u.authRepo.GetUserByUsername(email)
-	if err != nil {
-		return "", err
-	}
-	if user == nil {
-		return "", apperror.New(fiber.StatusNotFound)
-	}
 	if !domain.IsValidOTPPurpose(purpose) {
 		return "", apperror.New(fiber.StatusBadRequest)
+	}
+	if purpose != string(domain.OTPPurposeVerifyEmail) {
+		user, err := u.authRepo.GetUserByUsername(email)
+		if err != nil {
+			return "", err
+		}
+		if user == nil {
+			return "", apperror.New(fiber.StatusNotFound)
+		}
 	}
 	ref := uuid.NewString()
 	code, err := u.svc.SendOTP(ctx, email, ref)
@@ -64,15 +66,19 @@ func (u *otpUC) SendOTP(ctx context.Context, email, purpose string) (string, err
 }
 
 func (u *otpUC) VerifyOTP(ctx context.Context, email, ref, code, purpose, newPassword string) error {
-	user, err := u.authRepo.GetUserByUsername(email)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		return apperror.New(fiber.StatusNotFound)
-	}
 	if !domain.IsValidOTPPurpose(purpose) {
 		return apperror.New(fiber.StatusBadRequest)
+	}
+	var user *domain.User
+	var err error
+	if purpose != string(domain.OTPPurposeVerifyEmail) {
+		user, err = u.authRepo.GetUserByUsername(email)
+		if err != nil {
+			return err
+		}
+		if user == nil {
+			return apperror.New(fiber.StatusNotFound)
+		}
 	}
 	otpRec, err := u.otpRepo.GetActiveOTP(email, purpose, ref)
 	if err != nil {
@@ -95,11 +101,7 @@ func (u *otpUC) VerifyOTP(ctx context.Context, email, ref, code, purpose, newPas
 	if err := u.otpRepo.MarkUsed(otpRec.ID); err != nil {
 		return err
 	}
-	if purpose == string(domain.OTPPurposeVerifyEmail) {
-		if err := u.authRepo.SetUserVerified(user.ID); err != nil {
-			return err
-		}
-	} else if purpose == string(domain.OTPPurposeResetPassword) {
+	if purpose == string(domain.OTPPurposeResetPassword) {
 		if newPassword == "" {
 			return apperror.New(fiber.StatusBadRequest)
 		}

@@ -4,6 +4,8 @@ package http
 type RegisterRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	OTPRef   string `json:"otp_ref"`
+	OTPCode  string `json:"otp_code"`
 }
 
 // LoginRequest represents the expected payload for user login.

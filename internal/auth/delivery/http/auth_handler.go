@@ -34,14 +34,16 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
+	if body.OTPRef == "" || body.OTPCode == "" {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if err := h.otpUC.VerifyOTP(c.Context(), body.Username, body.OTPRef, body.OTPCode, string(authDomain.OTPPurposeVerifyEmail), ""); err != nil {
+		return err
+	}
 	if err := h.authUC.Register(body.Username, body.Password); err != nil {
 		return err
 	}
-	ref, err := h.otpUC.SendOTP(c.Context(), body.Username, string(authDomain.OTPPurposeVerifyEmail))
-	if err != nil {
-		return err
-	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "user registered", "otp_ref": ref})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "user registered"})
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {

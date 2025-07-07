@@ -22,9 +22,8 @@ type AuthRepository interface {
 	CreateLoginMethod(method *domain.UserLoginMethod) error
 	GetUserByLoginMethod(provider, providerUID string) (*domain.User, error)
 	AssignRoleToUser(userID uuid.UUID, roleName string) error
-        GetPrimaryRole(userID uuid.UUID) (string, error)
-        SetUserVerified(userID uuid.UUID) error
-        UpdatePassword(userID uuid.UUID, password string) error
+	GetPrimaryRole(userID uuid.UUID) (string, error)
+	UpdatePassword(userID uuid.UUID, password string) error
 }
 
 type authPG struct {
@@ -138,14 +137,10 @@ func (r *authPG) GetPrimaryRole(userID uuid.UUID) (string, error) {
 	return role.Name, nil
 }
 
-func (r *authPG) SetUserVerified(userID uuid.UUID) error {
-        return r.db.Model(&domain.User{}).Where("id = ?", userID).Update("is_verified", true).Error
-}
-
 func (r *authPG) UpdatePassword(userID uuid.UUID, password string) error {
-        hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-        if err != nil {
-                return err
-        }
-        return r.db.Model(&domain.User{}).Where("id = ?", userID).Update("password_hash", string(hashed)).Error
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return r.db.Model(&domain.User{}).Where("id = ?", userID).Update("password_hash", string(hashed)).Error
 }

@@ -135,7 +135,6 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 		user = &domain.User{
 			Username:     username,
 			PasswordHash: uuid.NewString(), // random password
-			IsVerified:   true,
 		}
 		if err := u.repo.CreateUser(user); err != nil {
 			return "", "", err
