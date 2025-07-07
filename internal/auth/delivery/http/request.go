@@ -48,3 +48,12 @@ type VerifyOTPRequest struct {
 	Purpose     string `json:"purpose"`
 	NewPassword string `json:"new_password"`
 }
+
+// ResetPasswordRequest represents the payload for resetting a password
+// using an OTP reference and code.
+type ResetPasswordRequest struct {
+	Email       string `json:"email"`
+	Ref         string `json:"ref"`
+	Code        string `json:"code"`
+	NewPassword string `json:"new_password"`
+}
