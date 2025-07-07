@@ -50,6 +50,16 @@ export GMAIL_FROM_EMAIL=you@example.com
 When these values are set, the server will use Gmail to deliver OTP
 codes. Otherwise an in-memory service is used.
 
+### OTP Purposes
+
+Requests to `/auth/send-otp` and `/auth/verify-otp` require a `purpose`
+value to indicate why the OTP was issued. Valid values are:
+
+- `verify_email` - send a code to verify a user's email address
+- `reset_password` - send a code to allow password reset
+
+Any other value will result in a `400 Bad Request` response.
+
 ### Using SMTP OTP Service
 
 You can also send OTP codes through a generic SMTP server. Provide the

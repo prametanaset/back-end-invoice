@@ -16,8 +16,8 @@ import (
 
 // OTPUsecase defines sending and verifying OTP codes.
 type OTPUsecase interface {
-        SendOTP(ctx context.Context, email, purpose string) (string, error)
-        VerifyOTP(ctx context.Context, email, ref, code, purpose, newPassword string) error
+	SendOTP(ctx context.Context, email, purpose string) (string, error)
+	VerifyOTP(ctx context.Context, email, ref, code, purpose, newPassword string) error
 }
 
 type otpUC struct {
@@ -31,57 +31,55 @@ func NewOTPUsecase(authRepo repository.AuthRepository, otpRepo repository.OTPRep
 	return &otpUC{authRepo: authRepo, otpRepo: otpRepo, svc: svc}
 }
 
-const otpPurposeVerifyEmail = "verify_email"
-const otpPurposeResetPassword = "reset_password"
 const maxOTPAttempts = 5
 
 func (u *otpUC) SendOTP(ctx context.Context, email, purpose string) (string, error) {
-        user, err := u.authRepo.GetUserByUsername(email)
-        if err != nil {
-                return "", err
-        }
-        if user == nil {
-                return "", apperror.New(fiber.StatusNotFound)
-        }
-        if purpose != otpPurposeVerifyEmail && purpose != otpPurposeResetPassword {
-                return "", apperror.New(fiber.StatusBadRequest)
-        }
-        ref := uuid.NewString()
-        code, err := u.svc.SendOTP(ctx, email, ref)
-        if err != nil {
-                return "", err
-        }
+	user, err := u.authRepo.GetUserByUsername(email)
+	if err != nil {
+		return "", err
+	}
+	if user == nil {
+		return "", apperror.New(fiber.StatusNotFound)
+	}
+	if !domain.IsValidOTPPurpose(purpose) {
+		return "", apperror.New(fiber.StatusBadRequest)
+	}
+	ref := uuid.NewString()
+	code, err := u.svc.SendOTP(ctx, email, ref)
+	if err != nil {
+		return "", err
+	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
-        otp := &domain.OTP{
-                Purpose:     purpose,
-                Ref:         ref,
-                Destination: email,
-                CodeHash:    string(hashed),
-                ExpiresAt:   time.Now().Add(5 * time.Minute),
-        }
-        return ref, u.otpRepo.CreateOTP(otp)
+	otp := &domain.OTP{
+		Purpose:     purpose,
+		Ref:         ref,
+		Destination: email,
+		CodeHash:    string(hashed),
+		ExpiresAt:   time.Now().Add(5 * time.Minute),
+	}
+	return ref, u.otpRepo.CreateOTP(otp)
 }
 
 func (u *otpUC) VerifyOTP(ctx context.Context, email, ref, code, purpose, newPassword string) error {
-        user, err := u.authRepo.GetUserByUsername(email)
-        if err != nil {
-                return err
-        }
-        if user == nil {
-                return apperror.New(fiber.StatusNotFound)
-        }
-        if purpose != otpPurposeVerifyEmail && purpose != otpPurposeResetPassword {
-                return apperror.New(fiber.StatusBadRequest)
-        }
-        otpRec, err := u.otpRepo.GetActiveOTP(email, purpose, ref)
-        if err != nil {
-                return err
-        }
-        if otpRec == nil {
-                return apperror.New(fiber.StatusBadRequest)
+	user, err := u.authRepo.GetUserByUsername(email)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return apperror.New(fiber.StatusNotFound)
+	}
+	if !domain.IsValidOTPPurpose(purpose) {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	otpRec, err := u.otpRepo.GetActiveOTP(email, purpose, ref)
+	if err != nil {
+		return err
+	}
+	if otpRec == nil {
+		return apperror.New(fiber.StatusBadRequest)
 	}
 	if otpRec.Attempts >= maxOTPAttempts {
 		_ = u.otpRepo.RevokeOTP(otpRec.ID)
@@ -97,17 +95,17 @@ func (u *otpUC) VerifyOTP(ctx context.Context, email, ref, code, purpose, newPas
 	if err := u.otpRepo.MarkUsed(otpRec.ID); err != nil {
 		return err
 	}
-        if purpose == otpPurposeVerifyEmail {
-                if err := u.authRepo.SetUserVerified(user.ID); err != nil {
-                        return err
-                }
-        } else if purpose == otpPurposeResetPassword {
-                if newPassword == "" {
-                        return apperror.New(fiber.StatusBadRequest)
-                }
-                if err := u.authRepo.UpdatePassword(user.ID, newPassword); err != nil {
-                        return err
-                }
-        }
-        return nil
+	if purpose == string(domain.OTPPurposeVerifyEmail) {
+		if err := u.authRepo.SetUserVerified(user.ID); err != nil {
+			return err
+		}
+	} else if purpose == string(domain.OTPPurposeResetPassword) {
+		if newPassword == "" {
+			return apperror.New(fiber.StatusBadRequest)
+		}
+		if err := u.authRepo.UpdatePassword(user.ID, newPassword); err != nil {
+			return err
+		}
+	}
+	return nil
 }

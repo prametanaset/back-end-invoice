@@ -36,15 +36,15 @@ type CheckEmailRequest struct {
 
 // SendOTPRequest represents the payload to request an OTP to be sent.
 type SendOTPRequest struct {
-    Email   string `json:"email"`
-    Purpose string `json:"purpose"`
+	Email   string `json:"email"`
+	Purpose string `json:"purpose"`
 }
 
 // VerifyOTPRequest represents the payload for verifying an OTP code.
 type VerifyOTPRequest struct {
-    Email       string `json:"email"`
-    Ref         string `json:"ref"`
-    Code        string `json:"code"`
-    Purpose     string `json:"purpose"`
-    NewPassword string `json:"new_password"`
+	Email       string `json:"email"`
+	Ref         string `json:"ref"`
+	Code        string `json:"code"`
+	Purpose     string `json:"purpose"`
+	NewPassword string `json:"new_password"`
 }
