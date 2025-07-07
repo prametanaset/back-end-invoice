@@ -37,7 +37,11 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if err := h.authUC.Register(body.Username, body.Password); err != nil {
 		return err
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "user registered"})
+	ref, err := h.otpUC.SendOTP(c.Context(), body.Username, string(authDomain.OTPPurposeVerifyEmail))
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "user registered", "otp_ref": ref})
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
