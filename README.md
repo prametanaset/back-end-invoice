@@ -60,6 +60,9 @@ value to indicate why the OTP was issued. Valid values are:
 
 Any other value will result in a `400 Bad Request` response.
 
+Once the user receives a reset password code, submit it along with the
+new password to `POST /auth/reset-password`.
+
 ### Using SMTP OTP Service
 
 You can also send OTP codes through a generic SMTP server. Provide the
