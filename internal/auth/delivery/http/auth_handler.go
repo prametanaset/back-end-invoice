@@ -125,32 +125,32 @@ func (h *AuthHandler) CheckEmail(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) SendOTP(c *fiber.Ctx) error {
-	var body SendOTPRequest
-	if err := c.BodyParser(&body); err != nil {
-		return apperror.New(fiber.StatusBadRequest)
-	}
-	if body.Email == "" {
-		return apperror.New(fiber.StatusBadRequest)
-	}
-	ref, err := h.otpUC.SendOTP(c.Context(), body.Email)
-	if err != nil {
-		return err
-	}
-	return c.JSON(fiber.Map{"message": "otp sent", "ref": ref})
+        var body SendOTPRequest
+        if err := c.BodyParser(&body); err != nil {
+                return apperror.New(fiber.StatusBadRequest)
+        }
+        if body.Email == "" || body.Purpose == "" {
+                return apperror.New(fiber.StatusBadRequest)
+        }
+        ref, err := h.otpUC.SendOTP(c.Context(), body.Email, body.Purpose)
+        if err != nil {
+                return err
+        }
+        return c.JSON(fiber.Map{"message": "otp sent", "ref": ref})
 }
 
 func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
-	var body VerifyOTPRequest
-	if err := c.BodyParser(&body); err != nil {
-		return apperror.New(fiber.StatusBadRequest)
-	}
-	if body.Email == "" || body.Code == "" || body.Ref == "" {
-		return apperror.New(fiber.StatusBadRequest)
-	}
-	if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Ref, body.Code); err != nil {
-		return err
-	}
-	return c.JSON(fiber.Map{"message": "otp verified"})
+        var body VerifyOTPRequest
+        if err := c.BodyParser(&body); err != nil {
+                return apperror.New(fiber.StatusBadRequest)
+        }
+        if body.Email == "" || body.Code == "" || body.Ref == "" || body.Purpose == "" {
+                return apperror.New(fiber.StatusBadRequest)
+        }
+        if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Ref, body.Code, body.Purpose, body.NewPassword); err != nil {
+                return err
+        }
+        return c.JSON(fiber.Map{"message": "otp verified"})
 }
 
 func (h *AuthHandler) MerchantStatus(c *fiber.Ctx) error {
