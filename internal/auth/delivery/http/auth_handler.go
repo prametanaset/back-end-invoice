@@ -10,6 +10,7 @@ import (
 	"invoice_project/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
 
@@ -37,7 +38,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if body.OTPRef == "" || body.OTPCode == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if err := h.otpUC.VerifyOTP(c.Context(), body.Username, body.OTPRef, body.OTPCode, string(authDomain.OTPPurposeVerifyEmail), ""); err != nil {
+	if _, err := h.otpUC.VerifyOTP(c.Context(), body.Username, body.OTPRef, body.OTPCode, string(authDomain.OTPPurposeVerifyEmail), ""); err != nil {
 		return err
 	}
 	if err := h.authUC.Register(body.Username, body.Password); err != nil {
@@ -154,10 +155,19 @@ func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
 	if body.Email == "" || body.Code == "" || body.Ref == "" || body.Purpose == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Ref, body.Code, body.Purpose, body.NewPassword); err != nil {
+	userID, err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Ref, body.Code, body.Purpose, body.NewPassword)
+	if err != nil {
 		return err
 	}
-	return c.JSON(fiber.Map{"message": "otp verified"})
+	resp := fiber.Map{"message": "otp verified"}
+	if body.Purpose == string(authDomain.OTPPurposeResetPassword) && body.NewPassword == "" {
+		token, err := middleware.GenerateJWTWithExpiry(h.jwtSecret, userID, "", 15*time.Minute, "reset")
+		if err != nil {
+			return err
+		}
+		resp["reset_token"] = token
+	}
+	return c.JSON(resp)
 }
 
 func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
@@ -165,10 +175,31 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if body.Email == "" || body.Code == "" || body.Ref == "" || body.NewPassword == "" {
+	if body.ResetToken == "" || body.NewPassword == "" {
 		return apperror.New(fiber.StatusBadRequest)
 	}
-	if err := h.otpUC.VerifyOTP(c.Context(), body.Email, body.Ref, body.Code, string(authDomain.OTPPurposeResetPassword), body.NewPassword); err != nil {
+	token, err := jwt.Parse(body.ResetToken, func(t *jwt.Token) (interface{}, error) {
+		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, fiber.ErrUnauthorized
+		}
+		return []byte(h.jwtSecret), nil
+	})
+	if err != nil || !token.Valid {
+		return apperror.New(fiber.StatusUnauthorized)
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	if typ, ok := claims["token_type"].(string); !ok || typ != "reset" {
+		return apperror.New(fiber.StatusUnauthorized)
+	}
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		return apperror.New(fiber.StatusUnauthorized)
+	}
+	uid, err := uuid.Parse(sub)
+	if err != nil {
+		return apperror.New(fiber.StatusBadRequest)
+	}
+	if err := h.otpUC.ResetPassword(uid, body.NewPassword); err != nil {
 		return err
 	}
 	return c.JSON(fiber.Map{"message": "password reset"})

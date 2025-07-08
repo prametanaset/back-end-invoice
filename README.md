@@ -60,8 +60,10 @@ value to indicate why the OTP was issued. Valid values are:
 
 Any other value will result in a `400 Bad Request` response.
 
-Once the user receives a reset password code, submit it along with the
-new password to `POST /auth/reset-password`.
+To reset a password, first verify the OTP code using `POST /auth/verify-otp`
+with `purpose` set to `reset_password`. When the OTP is valid, the response
+contains a `reset_token`. Submit this token together with the new password to
+`POST /auth/reset-password`.
 
 ### Using SMTP OTP Service
 
