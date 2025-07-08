@@ -29,7 +29,7 @@ type CompanyCustomer struct {
 	Customer     Customer `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	CompanyName  string   `gorm:"type:text" json:"company_name"`
 	Tin        string   `gorm:"type:text" json:"tin"`
-	BranchNo     int      `json:"branch_no"`
+	BranchNo     string      `gorm:"type:text" json:"branch_no"`
 }
 
 type PersonCustomer struct {

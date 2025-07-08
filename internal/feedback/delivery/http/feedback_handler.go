@@ -33,7 +33,7 @@ func (h *FeedbackHandler) Create(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Feedback submitted successfully",
-		"data":    fb, // จะใส่หรือไม่ใส่ก็ได้
+		"data":    fb,
 	})
 }
 
