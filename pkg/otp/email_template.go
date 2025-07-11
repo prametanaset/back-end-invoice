@@ -2,8 +2,8 @@ package otp
 
 import "fmt"
 
-func buildOTPEmail(to, code, ref string) string {
-	return fmt.Sprintf("To: %s\r\nSubject: Your OTP Code\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n"+
+func buildOTPEmail(to, code string) string {
+	return fmt.Sprintf("To: %s\r\nSubject: OTP for E-mail Verification on ScaleTax by Sunscaleup\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n"+
 		`<!DOCTYPE html>
 <html>
 <head>
@@ -59,19 +59,17 @@ func buildOTPEmail(to, code, ref string) string {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Verification Code</h1>
+      <h1>รหัสยืนยัน (OTP)</h1>
     </div>
     <div class="content">
-      <p>Hello,</p>
-      <p>Here is your OTP code. Please use it to complete your verification:</p>
+      <p>กรุณาใช้รหัสนี้เพื่อดำเนินการยืนยันตัวตนให้เสร็จสิ้น:</p>
       <div class="otp-code">%s</div>
-      <p style="margin-top:10px;">Reference: <strong>%s</strong></p>
-      <p>This code will expire in 5 minutes. Do not share this code with anyone.</p>
+      <p>รหัสยืนยันจะมีอายุเพียง 5 นาที ห้ามเปิดเผยรหัสนี้กับบุคคลอื่น</p>
     </div>
     <div class="footer">
-      <p>&copy; 2025 Your Company. All rights reserved.</p>
+      <p>&copy; 2025 sunscaleup Ltd. All rights reserved.</p>
     </div>
   </div>
 </body>
-</html>`, to, code, ref)
+</html>`, to, code)
 }

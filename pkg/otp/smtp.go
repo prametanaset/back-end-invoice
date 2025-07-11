@@ -39,7 +39,8 @@ func (s *SMTPOTPService) SendOTP(ctx context.Context, to, ref string) (string, e
 	}
 	addr := fmt.Sprintf("%s:%d", s.host, s.port)
 	auth := smtp.PlainAuth("", s.username, s.password, s.host)
-	msg := []byte(buildOTPEmail(to, code, ref))
+	// msg := []byte(buildOTPEmail(to, code, ref))
+	msg := []byte(buildOTPEmail(to, code))
 	if err := s.sendMail(addr, auth, s.fromEmail, []string{to}, msg); err != nil {
 		return "", err
 	}

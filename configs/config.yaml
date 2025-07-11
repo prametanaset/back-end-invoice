@@ -1,6 +1,6 @@
 server:
   port: ":8080"
-  allow_origins: "http://localhost:3000"
+  allow_origins: "http://localhost:3000,https://e7a6-2403-6200-8831-1778-d5a1-5763-6a03-41d8.ngrok-free.app"
 
 database:
   host: "43.229.76.109"
@@ -27,5 +27,5 @@ smtp:
   host: "smtp.gmail.com"
   port: 587
   username: "sunscaleup@gmail.com"
-  password: "owkk piyk whwe cmsl"
+  password: "lyxo fvjp nacp xkwx"
   from_email: "sunscaleup@gmail.com"

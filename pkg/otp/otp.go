@@ -63,7 +63,8 @@ func (g *GmailOTPService) SendOTP(ctx context.Context, to, ref string) (string, 
 	if err != nil {
 		return "", err
 	}
-	msgStr := buildOTPEmail(to, code, ref)
+	// msgStr := buildOTPEmail(to, code, ref)
+	msgStr := buildOTPEmail(to, code)
 	msg := &gmail.Message{Raw: base64.URLEncoding.EncodeToString([]byte(msgStr))}
 	if _, err := g.srv.Users.Messages.Send("me", msg).Do(); err != nil {
 		return "", err
