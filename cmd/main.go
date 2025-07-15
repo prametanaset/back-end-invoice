@@ -77,6 +77,9 @@ func main() {
 		&authModel.UserRole{},
 		&authModel.OTP{},
 		&invModel.Invoice{},
+		&invModel.InvoiceDocument{},
+		&invModel.InvoiceItem{},
+		&invModel.DocumentTimeline{},
 		&merchModel.MerchantType{},
 		&merchModel.Merchant{},
 		&merchModel.Store{},
@@ -168,6 +171,12 @@ func main() {
 	invoiceUsecase := invUC.NewInvoiceUsecase(invoiceRepository)
 	invoiceHandler := invHandler.NewInvoiceHandler(invoiceUsecase)
 	invoiceHandler.RegisterRoutes(app)
+
+	// Invoice document module
+	docRepo := invRepo.NewInvoiceDocumentRepository(db)
+	docUC := invUC.NewInvoiceDocumentUsecase(docRepo)
+	docHandler := invHandler.NewDocumentHandler(docUC)
+	docHandler.RegisterRoutes(app)
 
 	// Customer module
 	customerRepository := customerRepo.NewCustomerRepository(db)
