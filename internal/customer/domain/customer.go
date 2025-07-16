@@ -26,7 +26,6 @@ type Customer struct {
 type CompanyCustomer struct {
 	ID           uint     `gorm:"primaryKey;autoIncrement" json:"id"`
 	CustomerID   uint     `gorm:"not null" json:"customer_id"`
-	Customer     Customer `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	CompanyName  string   `gorm:"type:text" json:"company_name"`
 	Tin        string   `gorm:"type:text" json:"tin"`
 	BranchNo     string      `gorm:"type:text" json:"branch_no"`
@@ -35,7 +34,6 @@ type CompanyCustomer struct {
 type PersonCustomer struct {
 	ID         uint     `gorm:"primaryKey;autoIncrement" json:"id"`
 	CustomerID   uint     `gorm:"not null" json:"customer_id"`
-	Customer   Customer `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	FirstName  string   `gorm:"type:text" json:"first_name"`
 	LastName   string   `gorm:"type:text" json:"last_name"`
 	Tin        string   `gorm:"type:text" json:"tin"`
@@ -44,7 +42,6 @@ type PersonCustomer struct {
 type CustomerAddress struct {
 	ID             uint     `gorm:"primaryKey;autoIncrement" json:"id"`
 	CustomerID   uint     `gorm:"not null" json:"customer_id"`
-	Customer       Customer `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	AddressLine1   string   `gorm:"type:text" json:"address_line1"`
 	AddressLine2   string   `gorm:"type:text" json:"address_line2"`
 	ProvinceID     int      `gorm:"not null" json:"province_id"`
@@ -56,7 +53,6 @@ type CustomerAddress struct {
 type CustomerContact struct {
 	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	CustomerID   uint     `gorm:"not null" json:"customer_id"`
-	Customer     Customer  `gorm:"foreignKey:CustomerID;references:ID" json:"customer"`
 	ContactType  string    `gorm:"type:text" json:"contact_type"`
 	ContactValue string    `gorm:"type:text" json:"contact_value"`
 	CreatedAt    time.Time `json:"created_at"`

@@ -16,7 +16,6 @@ type Product struct {
 	VatRate   int       `gorm:"not null" json:"vat_rate"`   
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-
 	ProductImage  *ProductImage    `gorm:"foreignKey:ProductID" json:"product_image,omitempty"`
 
 }
@@ -24,6 +23,5 @@ type Product struct {
 type ProductImage struct {
 	ID        uint    `gorm:"primaryKey;autoIncrement" json:"id"`
 	ProductID uint    `gorm:"not null" json:"product_id"`
-	Product   Product `gorm:"foreignKey:ProductID;references:ID" json:"product"`
 	Url       string  `gorm:"type:text" json:"url"`
 }

@@ -71,13 +71,13 @@ func (r *productRepository) CreateProduct(ctx context.Context, product *domain.P
 			product.VatRate = 0
 		}
 
-		if product.Sku == "" {
-			newSku, err := GenerateSku(tx) // ใช้ tx แทน repo
-			if err != nil {
-				return err
-			}
-			product.Sku = newSku
-		}
+		// if product.Sku == "" {
+		// 	newSku, err := GenerateSku(tx) // ใช้ tx แทน repo
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	product.Sku = newSku
+		// }
 
 		if err := tx.Create(product).Error; err != nil {
 			return err
