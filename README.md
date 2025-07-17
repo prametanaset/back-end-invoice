@@ -27,7 +27,7 @@ export JWT_SECRET=your-jwt-secret
 The application reads `configs/config.yaml` for defaults but any environment variable above will override the values in the file.
 
 To register, first request an OTP by POSTing to `/auth/send-otp` with `purpose` set to `verify_email` and the desired email. Then call `/auth/register` providing the email as `username`, the password, and the `otp_ref` and `otp_code` returned from the previous step. Only when the OTP is verified will the user account be created with the `user` role. Access to invoice endpoints requires either the `user` or `admin` role.
-The `/me` endpoint returns the authenticated user's profile along with merchant details, including stores and whether the merchant is a person or company.
+The `/me` endpoint returns the authenticated user's profile along with merchant details, including stores with their addresses and whether the merchant is a person or company.
 
 Run the project with:
 
