@@ -106,7 +106,7 @@ func (r *merchantPG) CreateStore(store *domain.Store, addr *domain.StoreAddress)
 
 func (r *merchantPG) ListStores(merchantID uuid.UUID) ([]domain.Store, error) {
 	var stores []domain.Store
-	err := r.db.Where("merchant_id = ?", merchantID).Order("created_at desc").Find(&stores).Error
+	err := r.db.Preload("Address").Where("merchant_id = ?", merchantID).Order("created_at desc").Find(&stores).Error
 	if err != nil {
 		return nil, err
 	}

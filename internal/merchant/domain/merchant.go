@@ -14,12 +14,13 @@ type Merchant struct {
 }
 
 type Store struct {
-	ID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	MerchantID uuid.UUID `gorm:"type:uuid;not null" json:"merchant_id"`
-	StoreName  string    `gorm:"size:255;not null" json:"store_name"`
-	BranchNo   string    `gorm:"size:10" json:"branch_no"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID         uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	MerchantID uuid.UUID     `gorm:"type:uuid;not null" json:"merchant_id"`
+	StoreName  string        `gorm:"size:255;not null" json:"store_name"`
+	BranchNo   string        `gorm:"size:10" json:"branch_no"`
+	Address    *StoreAddress `gorm:"foreignKey:StoreID" json:"address,omitempty"`
+	CreatedAt  time.Time     `json:"created_at"`
+	UpdatedAt  time.Time     `json:"updated_at"`
 }
 
 type StoreAddress struct {
