@@ -27,6 +27,25 @@ func (u *documentUC) CreateDocument(ctx context.Context, doc *domain.InvoiceDocu
 		return apperror.New(fiber.StatusBadRequest)
 	}
 	doc.ID = 0
+
+	// sanitize buyer fields based on buyer type
+	switch doc.BuyerType {
+	case "company":
+		doc.BuyerFirstName = ""
+		doc.BuyerLastName = ""
+	case "person":
+		doc.BuyerCompanyName = ""
+	}
+
+	// sanitize seller fields based on seller type
+	switch doc.SellerType {
+	case "company":
+		doc.SellerFirstName = ""
+		doc.SellerLastName = ""
+	case "person":
+		doc.SellerCompanyName = ""
+	}
+
 	return u.repo.CreateDocument(ctx, doc, items)
 }
 
