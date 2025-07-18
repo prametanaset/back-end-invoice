@@ -4,28 +4,34 @@ import "time"
 
 // InvoiceDocument represents an issued invoice with summary information.
 type InvoiceDocument struct {
-	ID             uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	DocumentType   string    `gorm:"size:50" json:"document_type"`
-	DocumentNumber int       `json:"document_number"`
-	ReferenceID    *uint     `json:"reference_id"`
-	StoreID        *string   `gorm:"type:uuid" json:"store_id"`
-	CustomerID     *uint     `json:"customer_id"`
-	IssueDate      time.Time `gorm:"type:date" json:"issue_date"`
-	Status         string    `gorm:"size:50" json:"status"`
-	BuyerName      string    `gorm:"size:255" json:"buyer_name"`
-	BuyerTaxID     string    `gorm:"size:100" json:"buyer_tax_id"`
-	BuyerAddress   string    `gorm:"type:text" json:"buyer_address"`
-	SellerName     string    `gorm:"size:255" json:"seller_name"`
-	SellerTaxID    string    `gorm:"size:100" json:"seller_tax_id"`
-	SellerAddress  string    `gorm:"type:text" json:"seller_address"`
-	Subtotal       int       `json:"subtotal"`
-	DiscountType   int       `json:"discount_type"`
-	DiscountValue  int       `json:"discount_value"`
-	DiscountAmount int       `json:"discount_amount"`
-	VatAmount      int       `json:"vat_amount"`
-	GrandTotal     int       `json:"grand_total"`
-	Remarks        string    `gorm:"type:text" json:"remarks"`
-	CreatedAt      time.Time `gorm:"autoCreateTime" json:"created_at"`
+	ID                uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	DocumentType      string    `gorm:"size:50" json:"document_type"`
+	DocumentNumber    int       `json:"document_number"`
+	ReferenceID       *uint     `json:"reference_id"`
+	StoreID           *string   `gorm:"type:uuid" json:"store_id"`
+	CustomerID        *uint     `json:"customer_id"`
+	IssueDate         time.Time `gorm:"type:date" json:"issue_date"`
+	Status            string    `gorm:"size:50" json:"status"`
+	BuyerType         string    `gorm:"size:20" json:"buyer_type"`
+	BuyerFirstName    string    `gorm:"size:100" json:"buyer_first_name,omitempty"`
+	BuyerLastName     string    `gorm:"size:100" json:"buyer_last_name,omitempty"`
+	BuyerCompanyName  string    `gorm:"size:255" json:"buyer_company_name,omitempty"`
+	BuyerTaxID        string    `gorm:"size:100" json:"buyer_tax_id"`
+	BuyerAddress      string    `gorm:"type:text" json:"buyer_address"`
+	SellerType        string    `gorm:"size:20" json:"seller_type"`
+	SellerFirstName   string    `gorm:"size:100" json:"seller_first_name,omitempty"`
+	SellerLastName    string    `gorm:"size:100" json:"seller_last_name,omitempty"`
+	SellerCompanyName string    `gorm:"size:255" json:"seller_company_name,omitempty"`
+	SellerTaxID       string    `gorm:"size:100" json:"seller_tax_id"`
+	SellerAddress     string    `gorm:"type:text" json:"seller_address"`
+	Subtotal          int       `json:"subtotal"`
+	DiscountType      int       `json:"discount_type"`
+	DiscountValue     int       `json:"discount_value"`
+	DiscountAmount    int       `json:"discount_amount"`
+	VatAmount         int       `json:"vat_amount"`
+	GrandTotal        int       `json:"grand_total"`
+	Remarks           string    `gorm:"type:text" json:"remarks"`
+	CreatedAt         time.Time `gorm:"autoCreateTime" json:"created_at"`
 
 	Items     []InvoiceItem      `gorm:"foreignKey:DocumentID" json:"items,omitempty"`
 	Timelines []DocumentTimeline `gorm:"foreignKey:DocumentID" json:"timelines,omitempty"`
