@@ -1,6 +1,6 @@
 server:
   port: ":8080"
-  allow_origins: "http://localhost:3000,https://e7a6-2403-6200-8831-1778-d5a1-5763-6a03-41d8.ngrok-free.app"
+  allow_origins: "http://localhost:2601,http://localhost:3000"
 
 database:
   host: "43.229.76.109"

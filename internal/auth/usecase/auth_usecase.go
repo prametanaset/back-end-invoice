@@ -130,18 +130,33 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 	if err != nil {
 		return "", "", err
 	}
+
 	if user == nil {
-		// Create user if not exists
-		user = &domain.User{
-			Username:     username,
-			PasswordHash: uuid.NewString(), // random password
-		}
-		if err := u.repo.CreateUser(user); err != nil {
+		// Check if username already exists
+		existingUser, err := u.repo.GetUserByUsername(username)
+		if err != nil {
 			return "", "", err
 		}
-		if err := u.repo.AssignRoleToUser(user.ID, "user"); err != nil {
-			return "", "", err
+
+		if existingUser != nil {
+			// User exists but no login method yet => add login method
+			user = existingUser
+		} else {
+			// Create user
+			user = &domain.User{
+				Username:     username,
+				PasswordHash: uuid.NewString(), // random password
+			}
+			if err := u.repo.CreateUser(user); err != nil {
+				return "", "", err
+			}
+
+			if err := u.repo.AssignRoleToUser(user.ID, "user"); err != nil {
+				return "", "", err
+			}
 		}
+
+		// Now create login method for this user
 		lm := &domain.UserLoginMethod{
 			UserID:      user.ID,
 			Provider:    provider,
@@ -151,10 +166,13 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 			return "", "", err
 		}
 	}
+
+	// Generate tokens
 	role, err := u.repo.GetPrimaryRole(user.ID)
 	if err != nil {
 		return "", "", err
 	}
+
 	accessToken, err := middleware.GenerateJWTWithExpiry(u.jwtSecret, user.ID, role, u.accessExpiry, "access")
 	if err != nil {
 		return "", "", err
@@ -163,6 +181,7 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 	if err != nil {
 		return "", "", err
 	}
+
 	sess := &domain.UserSession{
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
@@ -171,8 +190,10 @@ func (u *authUC) OAuthLogin(provider, providerUID, username string) (string, str
 	if err := u.repo.CreateSession(sess); err != nil {
 		return "", "", err
 	}
+
 	return accessToken, refreshToken, nil
 }
+
 
 func (u *authUC) RefreshAccessToken(oldRefreshToken string) (string, string, error) {
 	// หา record จาก DB

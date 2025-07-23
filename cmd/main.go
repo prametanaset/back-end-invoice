@@ -117,7 +117,7 @@ func main() {
 		AllowCredentials: true,
 	}
 	if corsCfg.AllowOrigins == "" {
-		corsCfg.AllowOrigins = "http://localhost:3000"
+		corsCfg.AllowOrigins = "http://localhost:2601"
 	}
 	app.Use(cors.New(corsCfg))
 
